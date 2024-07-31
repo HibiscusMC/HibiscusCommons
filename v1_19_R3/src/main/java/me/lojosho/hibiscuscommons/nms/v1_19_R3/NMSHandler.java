@@ -2,6 +2,7 @@ package me.lojosho.hibiscuscommons.nms.v1_19_R3;
 
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
 import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket;
 import net.minecraft.network.protocol.game.ClientboundSetEquipmentPacket;
 import net.minecraft.network.protocol.game.ClientboundSetPlayerTeamPacket;
@@ -10,21 +11,21 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerPlayerConnection;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.scores.PlayerTeam;
 import net.minecraft.world.scores.Team;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.craftbukkit.v1_19_R3.CraftEquipmentSlot;
 import org.bukkit.craftbukkit.v1_19_R3.CraftServer;
 import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
 import org.bukkit.craftbukkit.v1_19_R3.scoreboard.CraftScoreboard;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 public class NMSHandler implements me.lojosho.hibiscuscommons.nms.NMSHandler {
 
@@ -138,6 +139,16 @@ public class NMSHandler implements me.lojosho.hibiscuscommons.nms.NMSHandler {
             add(NPCName);
         }}, ClientboundSetPlayerTeamPacket.Action.ADD);
         sendPacket(player, createPlayerTeamPacket);
+    }
+
+    @Override
+    public void entitySpawn(int entityId, EntityType entityType, Location location, List<Player> sendTo) {
+        net.minecraft.world.entity.EntityType<?> entityType1 = net.minecraft.world.entity.EntityType.byString(entityType.getKey().toString()).orElseThrow();
+        double x = location.getX(), y = location.getY(), z = location.getZ();
+        float yaw = location.getYaw(), pitch = location.getPitch();
+
+        ClientboundAddEntityPacket packet = new ClientboundAddEntityPacket(entityId, UUID.randomUUID(), x, y, z, pitch, yaw, entityType1, 0, Vec3.ZERO, 0f);
+        for (Player p : sendTo) sendPacket(p, packet);
     }
 
     public void sendPacket(Player player, Packet packet) {

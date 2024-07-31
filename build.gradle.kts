@@ -160,7 +160,7 @@ tasks {
         archiveFileName.set("${project.name}-${project.version}.jar")
 
         doLast {
-            archiveFile.get().asFile.copyTo(layout.projectDirectory.file("output/${project.name}-${project.version}.jar").asFile, true)
+            archiveFile.get().asFile.copyTo(File("D:\\Server\\HmcTest\\plugins\\${project.name}-${project.version}.jar"), true)
         }
     }
 
