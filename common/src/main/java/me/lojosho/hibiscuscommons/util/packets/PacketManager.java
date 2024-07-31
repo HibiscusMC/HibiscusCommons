@@ -4,6 +4,7 @@ import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.events.PacketContainer;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntList;
 import me.lojosho.hibiscuscommons.nms.NMSHandlers;
 import me.lojosho.hibiscuscommons.util.MessagesUtil;
 import org.bukkit.Location;
@@ -28,16 +29,31 @@ public class PacketManager {
             final UUID uuid,
             final @NotNull List<Player> sendTo
     ) {
-        PacketContainer packet = new PacketContainer(PacketType.Play.Server.SPAWN_ENTITY);
-        packet.getModifier().writeDefaults();
-        packet.getUUIDs().write(0, uuid);
-        packet.getIntegers().write(0, entityId);
-        packet.getEntityTypeModifier().write(0, entityType);
-        packet.getDoubles().
-                write(0, location.getX()).
-                write(1, location.getY()).
-                write(2, location.getZ());
-        for (Player p : sendTo) sendPacket(p, packet);
+        NMSHandlers.getHandler().entitySpawn(entityId, uuid, entityType, location, sendTo);
+    }
+
+    /**
+     * Destroys an entity from a player
+     * @param entityId The entity to delete for a player
+     * @param sendTo The players the packet should be sent to
+     */
+    public static void sendEntityDestroyPacket(
+            final int entityId,
+            final @NotNull List<Player> sendTo
+    ) {
+        NMSHandlers.getHandler().entityDestroy(entityId, sendTo);
+    }
+
+    /**
+     * Destroys a list of entities from a player
+     * @param entityIds The entities to delete for a player
+     * @param sendTo The players the packet should be sent to
+     */
+    public static void sendEntityDestroyPacket(
+            final IntList entityIds,
+            final @NotNull List<Player> sendTo
+    ) {
+        NMSHandlers.getHandler().entityDestroy(entityIds, sendTo);
     }
 
     public static void gamemodeChangePacket(
@@ -130,29 +146,6 @@ public class PacketManager {
         for (final Player p : sendTo) {
             sendPacket(p, packet);
         }
-    }
-
-    /**
-     * Destroys an entity from a player
-     * @param entityId The entity to delete for a player
-     * @param sendTo The players the packet should be sent to
-     */
-    public static void sendEntityDestroyPacket(final int entityId, @NotNull List<Player> sendTo) {
-        PacketContainer packet = new PacketContainer(PacketType.Play.Server.ENTITY_DESTROY);
-        packet.getModifier().write(0, new IntArrayList(new int[]{entityId}));
-        for (final Player p : sendTo) sendPacket(p, packet);
-    }
-
-    /**
-     * Destroys an entity from a player
-     * @param sendTo The players the packet should be sent to
-     */
-    public static void sendEntityDestroyPacket(final List<Integer> ids, @NotNull List<Player> sendTo) {
-        PacketContainer packet = new PacketContainer(PacketType.Play.Server.ENTITY_DESTROY);
-        IntArrayList entities = new IntArrayList(new int[]{});
-        for (int id : ids) entities.add(id);
-        packet.getModifier().write(0, entities);
-        for (final Player p : sendTo) sendPacket(p, packet);
     }
 
     /**
