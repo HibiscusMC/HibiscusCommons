@@ -5,6 +5,8 @@ import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.ints.IntLists;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.*;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerPlayerConnection;
@@ -22,6 +24,7 @@ import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.craftbukkit.inventory.CraftItemStack;
 import org.bukkit.craftbukkit.scoreboard.CraftScoreboard;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
@@ -160,6 +163,23 @@ public class NMSHandler implements me.lojosho.hibiscuscommons.nms.NMSHandler {
     @Override
     public void entityDestroy(int entityId, List<Player> sendTo) {
         ClientboundRemoveEntitiesPacket packet = new ClientboundRemoveEntitiesPacket(IntList.of(entityId));
+        for (Player p : sendTo) sendPacket(p, packet);
+    }
+
+    @Override
+    public void itemDisplayMetadata(int entityId, float width, float height, float viewRange, int blockLight, int skyLight, ItemDisplay.ItemDisplayTransform transform, ItemStack itemStack, List<Player> sendTo) {
+        List<SynchedEntityData.DataValue<?>> dataValues = new ArrayList<>();
+
+        dataValues.add(new SynchedEntityData.DataValue<>(9, EntityDataSerializers.INT, 0));
+        dataValues.add(new SynchedEntityData.DataValue<>(16, EntityDataSerializers.INT, (blockLight << 4 | skyLight << 20)));
+        dataValues.add(new SynchedEntityData.DataValue<>(17, EntityDataSerializers.FLOAT, viewRange));
+        dataValues.add(new SynchedEntityData.DataValue<>(20, EntityDataSerializers.FLOAT, width));
+        dataValues.add(new SynchedEntityData.DataValue<>(21, EntityDataSerializers.FLOAT, height));
+
+        dataValues.add(new SynchedEntityData.DataValue<>(23, EntityDataSerializers.ITEM_STACK, CraftItemStack.asNMSCopy(itemStack)));
+        dataValues.add(new SynchedEntityData.DataValue<>(24, EntityDataSerializers.BYTE, (byte) transform.ordinal()));
+
+        ClientboundSetEntityDataPacket packet = new ClientboundSetEntityDataPacket(entityId, dataValues);
         for (Player p : sendTo) sendPacket(p, packet);
     }
 

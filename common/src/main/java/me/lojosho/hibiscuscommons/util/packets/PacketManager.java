@@ -10,6 +10,7 @@ import me.lojosho.hibiscuscommons.util.MessagesUtil;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
@@ -54,6 +55,20 @@ public class PacketManager {
             final @NotNull List<Player> sendTo
     ) {
         NMSHandlers.getHandler().entityDestroy(entityIds, sendTo);
+    }
+
+    public static void sendItemDisplayMetadataPacket(
+            final int entityId,
+            final float width,
+            final float height,
+            final float viewRange,
+            final int blockLight,
+            final int skyLight,
+            final ItemDisplay.ItemDisplayTransform transform,
+            final ItemStack itemStack,
+            final List<Player> sendTo
+    ) {
+        NMSHandlers.getHandler().itemDisplayMetadata(entityId, width, height, viewRange, blockLight, skyLight, transform, itemStack, sendTo);
     }
 
     public static void gamemodeChangePacket(
