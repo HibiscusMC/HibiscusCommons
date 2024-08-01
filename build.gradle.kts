@@ -3,11 +3,10 @@ import net.minecrell.pluginyml.bukkit.BukkitPluginDescription
 plugins {
     id("java")
     id("maven-publish")
-    id("com.gradleup.shadow") version "8.3.3"
+    id("com.gradleup.shadow") version "8.3.4"
     id("net.minecrell.plugin-yml.bukkit") version "0.6.0"
     id("xyz.jpenilla.run-paper") version "2.3.1"
-    id("io.papermc.paperweight.userdev") version "1.7.3" apply false
-    //id("io.papermc.hangar-publish-plugin") version "0.1.1"
+    id("io.papermc.paperweight.userdev") version "1.7.4" apply false
 }
 
 group = "me.lojosho"
@@ -26,7 +25,7 @@ allprojects {
         // UpdateChecker
         maven("https://repo.jeff-media.com/public")
 
-        // Geary & Backup ProtocolLib repo
+        // Geary
         maven("https://repo.mineinabyss.com/releases/")
         maven("https://repo.mineinabyss.com/snapshots/")
 
@@ -47,9 +46,6 @@ allprojects {
 
         // PlaceholderAPI
         maven("https://repo.extendedclip.com/content/repositories/placeholderapi/")
-
-        // ProtocolLib
-        maven("https://repo.dmulloy2.net/repository/public/")
 
         // Oraxen
         maven("https://repo.oraxen.com/releases")
@@ -83,13 +79,14 @@ allprojects {
         compileOnly("net.Indyuce:MMOItems-API:6.9.4-SNAPSHOT")
         compileOnly("com.willfp:eco:6.67.2")
         compileOnly("me.clip:placeholderapi:2.11.6")
-        compileOnly("LibsDisguises:LibsDisguises:10.0.21") {
+        compileOnly("LibsDisguises:LibsDisguises:10.0.44") {
             exclude("org.spigotmc", "spigot")
         }
-        compileOnly("com.github.Xiao-MoMi:Custom-Fishing:2.2.26")
+        compileOnly("com.github.Xiao-MoMi:Custom-Fishing:2.2.29")
         compileOnly("com.ticxo.modelengine:ModelEngine:R4.0.2")
 
         // Lombok <3
+        compileOnly("org.projectlombok:lombok:1.18.34")
         annotationProcessor("org.projectlombok:lombok:1.18.34")
         testCompileOnly("org.projectlombok:lombok:1.18.34")
         testAnnotationProcessor("org.projectlombok:lombok:1.18.34")
@@ -176,7 +173,6 @@ bukkit {
     main = "me.lojosho.hibiscuscommons.HibiscusCommonsPlugin"
     apiVersion = "1.19"
     authors = listOf("LoJoSho")
-    depend = listOf("ProtocolLib")
     softDepend = listOf(
         "ModelEngine",
         "Oraxen",
@@ -220,12 +216,6 @@ hangarPublish {
 
                 val versions: List<String> = listOf("1.18.2-1.20.4")
                 platformVersions.set(versions)
-
-                dependencies {
-                    hangar("ProtocolLib") {
-                        required.set(true)
-                    }
-                }
             }
         }
     }

@@ -1,20 +1,17 @@
 package me.lojosho.hibiscuscommons.util.packets;
 
 import com.comphenix.protocol.PacketType;
-import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.events.PacketContainer;
-import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import me.lojosho.hibiscuscommons.nms.NMSHandlers;
 import me.lojosho.hibiscuscommons.util.MessagesUtil;
 import org.bukkit.Location;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.ItemDisplay;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.*;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -59,22 +56,28 @@ public class PacketManager {
 
     public static void sendItemDisplayMetadataPacket(
             final int entityId,
-            final float width,
-            final float height,
-            final float viewRange,
+            final Vector3f translation,
+            final Vector3f scale,
+            final Quaternionf rotationLeft,
+            final Quaternionf rotationRight,
+            final Display.Billboard billboard,
             final int blockLight,
             final int skyLight,
+            final float viewRange,
+            final float width,
+            final float height,
             final ItemDisplay.ItemDisplayTransform transform,
             final ItemStack itemStack,
             final List<Player> sendTo
     ) {
-        NMSHandlers.getHandler().itemDisplayMetadata(entityId, width, height, viewRange, blockLight, skyLight, transform, itemStack, sendTo);
+        NMSHandlers.getHandler().itemDisplayMetadata(entityId, translation, scale, rotationLeft, rotationRight, billboard, blockLight, skyLight, viewRange, width, height, transform, itemStack, sendTo);
     }
 
     public static void gamemodeChangePacket(
             Player player,
             int gamemode
     ) {
+        NMSHandlers.getHandler().gamemodeChange(player, gamemode);
         PacketContainer packet = new PacketContainer(PacketType.Play.Server.GAME_STATE_CHANGE);
         packet.getGameStateIDs().write(0, 3);
         // Tells what event this is. This is a change gamemode event.
@@ -201,6 +204,7 @@ public class PacketManager {
             boolean onGround,
             final @NotNull List<Player> sendTo
     ) {
+        NMSHandlers.getHandler().teleport(entityId)
         PacketContainer packet = new PacketContainer(PacketType.Play.Server.ENTITY_TELEPORT);
         packet.getIntegers().write(0, entityId);
         packet.getDoubles().write(0, location.getX());
@@ -254,16 +258,9 @@ public class PacketManager {
     private static List<Player> getNearbyPlayers(Location location, int distance) {
         List<Player> players = new ArrayList<>();
         for (Entity entity : location.getWorld().getNearbyEntities(location, distance, distance, distance)) {
-            if (entity instanceof Player) {
-                players.add((Player) entity);
-            }
+            if (entity instanceof Player player) players.add(player);
         }
         return players;
-    }
-
-    public static void sendPacket(Player player, PacketContainer packet) {
-        if (player == null) return;
-        ProtocolLibrary.getProtocolManager().sendServerPacket(player, packet, null,false);
     }
 
 }

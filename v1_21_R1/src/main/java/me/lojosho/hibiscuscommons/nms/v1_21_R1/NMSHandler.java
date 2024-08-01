@@ -23,10 +23,13 @@ import org.bukkit.craftbukkit.entity.CraftEntityType;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.craftbukkit.inventory.CraftItemStack;
 import org.bukkit.craftbukkit.scoreboard.CraftScoreboard;
+import org.bukkit.entity.Display;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
 
 import java.util.*;
 
@@ -146,10 +149,14 @@ public class NMSHandler implements me.lojosho.hibiscuscommons.nms.NMSHandler {
     }
 
     @Override
-    public void itemDisplayMetadata(int entityId, float width, float height, float viewRange, int blockLight, int skyLight, ItemDisplay.ItemDisplayTransform transform, ItemStack itemStack, List<Player> sendTo) {
+    public void itemDisplayMetadata(int entityId, Vector3f translation, Vector3f scale, Quaternionf rotationLeft, Quaternionf rotationRight, Display.Billboard billboard, int blockLight, int skyLight, float viewRange, float width, float height, ItemDisplay.ItemDisplayTransform transform, ItemStack itemStack, List<Player> sendTo) {
         List<SynchedEntityData.DataValue<?>> dataValues = new ArrayList<>();
 
-        dataValues.add(new SynchedEntityData.DataValue<>(9, EntityDataSerializers.INT, 0));
+        dataValues.add(new SynchedEntityData.DataValue<>(11, EntityDataSerializers.VECTOR3, translation));
+        dataValues.add(new SynchedEntityData.DataValue<>(12, EntityDataSerializers.VECTOR3, scale));
+        dataValues.add(new SynchedEntityData.DataValue<>(13, EntityDataSerializers.QUATERNION, rotationLeft));
+        dataValues.add(new SynchedEntityData.DataValue<>(14, EntityDataSerializers.QUATERNION, rotationRight));
+        dataValues.add(new SynchedEntityData.DataValue<>(15, EntityDataSerializers.BYTE, (byte) billboard.ordinal()));
         dataValues.add(new SynchedEntityData.DataValue<>(16, EntityDataSerializers.INT, (blockLight << 4 | skyLight << 20)));
         dataValues.add(new SynchedEntityData.DataValue<>(17, EntityDataSerializers.FLOAT, viewRange));
         dataValues.add(new SynchedEntityData.DataValue<>(20, EntityDataSerializers.FLOAT, width));
@@ -160,6 +167,11 @@ public class NMSHandler implements me.lojosho.hibiscuscommons.nms.NMSHandler {
 
         ClientboundSetEntityDataPacket packet = new ClientboundSetEntityDataPacket(entityId, dataValues);
         for (Player p : sendTo) sendPacket(p, packet);
+    }
+
+    @Override
+    public void gamemodeChange(Player player, int gamemode) {
+        sendPacket(player, new ClientboundGamemodePacket(gamemode));
     }
 
     @Override

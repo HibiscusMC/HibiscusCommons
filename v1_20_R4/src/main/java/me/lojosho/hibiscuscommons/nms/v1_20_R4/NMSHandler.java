@@ -166,7 +166,7 @@ public class NMSHandler implements me.lojosho.hibiscuscommons.nms.NMSHandler {
         for (Player p : sendTo) sendPacket(p, packet);
     }
 
-    @Override
+    //@Override
     public void itemDisplayMetadata(int entityId, float width, float height, float viewRange, int blockLight, int skyLight, ItemDisplay.ItemDisplayTransform transform, ItemStack itemStack, List<Player> sendTo) {
         List<SynchedEntityData.DataValue<?>> dataValues = new ArrayList<>();
 

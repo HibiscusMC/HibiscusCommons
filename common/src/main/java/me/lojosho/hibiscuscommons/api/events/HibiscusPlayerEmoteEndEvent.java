@@ -1,6 +1,5 @@
 package me.lojosho.hibiscuscommons.api.events;
 
-import lombok.Getter;
 import me.lojosho.hibiscuscommons.hooks.Hook;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
