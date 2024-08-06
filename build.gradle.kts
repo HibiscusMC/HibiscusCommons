@@ -12,7 +12,7 @@ plugins {
 }
 
 group = "me.lojosho"
-version = "0.4.6"
+version = "0.4.7"
 
 allprojects {
     apply(plugin = "java")
@@ -154,7 +154,7 @@ tasks {
         archiveFileName.set("${project.name}-${project.version}.jar")
 
         doLast {
-            archiveFile.get().asFile.copyTo(layout.projectDirectory.file("output/${project.name}-${project.version}.jar").asFile, true)
+            archiveFile.get().asFile.copyTo(File("D:\\Server\\Paper1_21\\plugins\\${project.name}-${project.version}.jar"), true)
         }
     }
 
