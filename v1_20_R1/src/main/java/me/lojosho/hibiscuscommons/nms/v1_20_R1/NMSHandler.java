@@ -1,30 +1,33 @@
 package me.lojosho.hibiscuscommons.nms.v1_20_R1;
 
 import com.mojang.datafixers.util.Pair;
+import it.unimi.dsi.fastutil.ints.IntList;
+import it.unimi.dsi.fastutil.ints.IntLists;
 import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket;
-import net.minecraft.network.protocol.game.ClientboundSetEquipmentPacket;
-import net.minecraft.network.protocol.game.ClientboundSetPlayerTeamPacket;
+import net.minecraft.network.protocol.game.*;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerPlayerConnection;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.scores.PlayerTeam;
 import net.minecraft.world.scores.Team;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.craftbukkit.v1_20_R1.CraftEquipmentSlot;
 import org.bukkit.craftbukkit.v1_20_R1.CraftServer;
 import org.bukkit.craftbukkit.v1_20_R1.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_20_R1.inventory.CraftItemStack;
 import org.bukkit.craftbukkit.v1_20_R1.scoreboard.CraftScoreboard;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 public class NMSHandler implements me.lojosho.hibiscuscommons.nms.NMSHandler {
 
@@ -138,6 +141,45 @@ public class NMSHandler implements me.lojosho.hibiscuscommons.nms.NMSHandler {
             add(NPCName);
         }}, ClientboundSetPlayerTeamPacket.Action.ADD);
         sendPacket(player, createPlayerTeamPacket);
+    }
+
+    @Override
+    public void entitySpawn(int entityId, UUID uuid, EntityType entityType, Location location, List<Player> sendTo) {
+        net.minecraft.world.entity.EntityType<?> entityType1 = net.minecraft.world.entity.EntityType.byString(entityType.getKey().toString()).orElseThrow();
+        double x = location.getX(), y = location.getY(), z = location.getZ();
+        float yaw = location.getYaw(), pitch = location.getPitch();
+
+        ClientboundAddEntityPacket packet = new ClientboundAddEntityPacket(entityId, UUID.randomUUID(), x, y, z, pitch, yaw, entityType1, 0, Vec3.ZERO, 0f);
+        for (Player p : sendTo) sendPacket(p, packet);
+    }
+
+    @Override
+    public void entityDestroy(IntList entityIds, List<Player> sendTo) {
+        ClientboundRemoveEntitiesPacket packet = new ClientboundRemoveEntitiesPacket(entityIds);
+        for (Player p : sendTo) sendPacket(p, packet);
+    }
+
+    @Override
+    public void entityDestroy(int entityId, List<Player> sendTo) {
+        ClientboundRemoveEntitiesPacket packet = new ClientboundRemoveEntitiesPacket(IntList.of(entityId));
+        for (Player p : sendTo) sendPacket(p, packet);
+    }
+
+    //@Override
+    public void itemDisplayMetadata(int entityId, float width, float height, float viewRange, int blockLight, int skyLight, ItemDisplay.ItemDisplayTransform transform, ItemStack itemStack, List<Player> sendTo) {
+        List<SynchedEntityData.DataValue<?>> dataValues = new ArrayList<>();
+
+        dataValues.add(new SynchedEntityData.DataValue<>(9, EntityDataSerializers.INT, 0));
+        dataValues.add(new SynchedEntityData.DataValue<>(16, EntityDataSerializers.INT, (blockLight << 4 | skyLight << 20)));
+        dataValues.add(new SynchedEntityData.DataValue<>(17, EntityDataSerializers.FLOAT, viewRange));
+        dataValues.add(new SynchedEntityData.DataValue<>(20, EntityDataSerializers.FLOAT, width));
+        dataValues.add(new SynchedEntityData.DataValue<>(21, EntityDataSerializers.FLOAT, height));
+
+        dataValues.add(new SynchedEntityData.DataValue<>(23, EntityDataSerializers.ITEM_STACK, CraftItemStack.asNMSCopy(itemStack)));
+        dataValues.add(new SynchedEntityData.DataValue<>(24, EntityDataSerializers.BYTE, (byte) transform.ordinal()));
+
+        ClientboundSetEntityDataPacket packet = new ClientboundSetEntityDataPacket(entityId, dataValues);
+        for (Player p : sendTo) sendPacket(p, packet);
     }
 
     public void sendPacket(Player player, Packet packet) {
