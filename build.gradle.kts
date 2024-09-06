@@ -25,7 +25,7 @@ allprojects {
         maven("https://oss.sonatype.org/content/repositories/snapshots")
 
         // UpdateChecker
-        maven("https://hub.jeff-media.com/nexus/repository/jeff-media-public/")
+        maven("https://repo.jeff-media.com/public/")
 
         // Geary & Backup ProtocolLib repo
         maven("https://repo.mineinabyss.com/releases/")
@@ -81,7 +81,7 @@ allprojects {
         compileOnly("LibsDisguises:LibsDisguises:10.0.21") {
             exclude("org.spigotmc", "spigot")
         }
-        compileOnly("com.github.Xiao-MoMi:Custom-Fishing:2.2.5")
+        compileOnly("com.github.Xiao-MoMi:Custom-Fishing:2.2.20")
         compileOnly("com.ticxo.modelengine:ModelEngine:R4.0.2")
 
         // Lombok <3
