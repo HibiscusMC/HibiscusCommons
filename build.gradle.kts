@@ -27,7 +27,7 @@ allprojects {
         // UpdateChecker
         maven("https://repo.jeff-media.com/public/")
 
-        // Geary & Backup ProtocolLib repo
+        // Geary
         maven("https://repo.mineinabyss.com/releases/")
         maven("https://repo.mineinabyss.com/snapshots/")
 
@@ -48,9 +48,6 @@ allprojects {
 
         // PlaceholderAPI
         maven("https://repo.extendedclip.com/content/repositories/placeholderapi/")
-
-        // ProtocolLib
-        maven("https://repo.dmulloy2.net/repository/public/")
 
         // MythicMobs
         maven {
@@ -170,7 +167,6 @@ bukkit {
     main = "me.lojosho.hibiscuscommons.HibiscusCommonsPlugin"
     apiVersion = "1.19"
     authors = listOf("LoJoSho")
-    depend = listOf("ProtocolLib")
     softDepend = listOf(
         "ModelEngine",
         "Oraxen",
