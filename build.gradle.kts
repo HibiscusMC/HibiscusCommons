@@ -43,6 +43,9 @@ allprojects {
         // MMOItems
         maven("https://nexus.phoenixdevt.fr/repository/maven-public/")
 
+        // PacketEvents
+        maven("https://repo.codemc.io/repository/maven-releases/")
+
         // Eco-Suite/Auxilor Repo
         maven("https://repo.auxilor.io/repository/maven-public/")
 
@@ -74,6 +77,7 @@ allprojects {
         compileOnly("com.github.LeonMangler:SuperVanish:6.2.17")
         compileOnly("net.Indyuce:MMOItems-API:6.9.4-SNAPSHOT")
         compileOnly("com.willfp:eco:6.67.2")
+        compileOnly("com.github.retrooper:packetevents-spigot:2.4.0")
         compileOnly("me.clip:placeholderapi:2.11.6")
         compileOnly("LibsDisguises:LibsDisguises:10.0.21") {
             exclude("org.spigotmc", "spigot")
@@ -167,6 +171,7 @@ bukkit {
     main = "me.lojosho.hibiscuscommons.HibiscusCommonsPlugin"
     apiVersion = "1.19"
     authors = listOf("LoJoSho")
+    depend = listOf("PacketEvents")
     softDepend = listOf(
         "ModelEngine",
         "Oraxen",

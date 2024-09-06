@@ -1,8 +1,11 @@
 package me.lojosho.hibiscuscommons.util.packets;
 
-import com.comphenix.protocol.PacketType;
-import com.comphenix.protocol.ProtocolLibrary;
-import com.comphenix.protocol.events.PacketContainer;
+import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.util.Vector3d;
+import com.github.retrooper.packetevents.wrapper.PacketWrapper;
+import com.github.retrooper.packetevents.wrapper.play.server.*;
+import com.google.common.primitives.Ints;
+import io.github.retrooper.packetevents.util.SpigotConversionUtil;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import me.lojosho.hibiscuscommons.nms.NMSHandlers;
 import me.lojosho.hibiscuscommons.util.MessagesUtil;
@@ -28,15 +31,16 @@ public class PacketManager {
             final UUID uuid,
             final @NotNull List<Player> sendTo
     ) {
-        PacketContainer packet = new PacketContainer(PacketType.Play.Server.SPAWN_ENTITY);
-        packet.getModifier().writeDefaults();
-        packet.getUUIDs().write(0, uuid);
-        packet.getIntegers().write(0, entityId);
-        packet.getEntityTypeModifier().write(0, entityType);
-        packet.getDoubles().
-                write(0, location.getX()).
-                write(1, location.getY()).
-                write(2, location.getZ());
+        WrapperPlayServerSpawnEntity packet = new WrapperPlayServerSpawnEntity(
+            entityId,
+            uuid,
+            SpigotConversionUtil.fromBukkitEntityType(entityType),
+            SpigotConversionUtil.fromBukkitLocation(location),
+            0,
+            0,
+            new Vector3d()
+        );
+
         for (Player p : sendTo) sendPacket(p, packet);
     }
 
@@ -44,10 +48,11 @@ public class PacketManager {
             Player player,
             int gamemode
     ) {
-        PacketContainer packet = new PacketContainer(PacketType.Play.Server.GAME_STATE_CHANGE);
-        packet.getGameStateIDs().write(0, 3);
-        // Tells what event this is. This is a change gamemode event.
-        packet.getFloat().write(0, (float) gamemode);
+        WrapperPlayServerChangeGameState packet = new WrapperPlayServerChangeGameState(
+            3,
+            gamemode
+        );
+
         sendPacket(player, packet);
         MessagesUtil.sendDebugMessages("Gamemode Change sent to " + player + " to be " + gamemode);
     }
@@ -57,10 +62,15 @@ public class PacketManager {
             int passengerId,
             @NotNull List<Player> sendTo
     ) {
-        PacketContainer packet = new PacketContainer(PacketType.Play.Server.MOUNT);
-        packet.getIntegers().write(0, mountId);
-        packet.getIntegerArrays().write(0, new int[]{passengerId});
-        for (Player p : sendTo) sendPacket(p, packet);
+        // TODO: Verify that is the right packet (ProtocolLib called the packet type: MOUNT
+        WrapperPlayServerSetPassengers packet = new WrapperPlayServerSetPassengers(
+            mountId,
+            new int[]{passengerId}
+        );
+
+        for (final Player p : sendTo) {
+            sendPacket(p, packet);
+        }
     }
 
     public static void sendLookPacket(
@@ -68,9 +78,11 @@ public class PacketManager {
             @NotNull Location location,
             @NotNull List<Player> sendTo
     ) {
-        PacketContainer packet = new PacketContainer(PacketType.Play.Server.ENTITY_HEAD_ROTATION);
-        packet.getIntegers().write(0, entityId);
-        packet.getBytes().write(0, (byte) (location.getYaw() * 256.0F / 360.0F));
+        WrapperPlayServerEntityHeadLook packet = new WrapperPlayServerEntityHeadLook(
+            entityId,
+            (location.getYaw() * 256.0F / 360.0F)
+        );
+
         for (Player p : sendTo) sendPacket(p, packet);
     }
 
@@ -83,13 +95,15 @@ public class PacketManager {
         float ROTATION_FACTOR = 256.0F / 360.0F;
         float yaw = location.getYaw() * ROTATION_FACTOR;
         float pitch = location.getPitch() * ROTATION_FACTOR;
-        PacketContainer packet = new PacketContainer(PacketType.Play.Server.ENTITY_LOOK);
-        packet.getIntegers().write(0, entityId);
-        packet.getBytes().write(0, (byte) yaw);
-        packet.getBytes().write(1, (byte) pitch);
 
-        //Bukkit.getLogger().info("DEBUG: Yaw: " + (location.getYaw() * ROTATION_FACTOR) + " | Original Yaw: " + location.getYaw());
-        packet.getBooleans().write(0, onGround);
+        // TODO: Verify that is the right packet (ProtocolLib called the packet type: ENTITY_LOOK)
+        WrapperPlayServerEntityRotation packet = new WrapperPlayServerEntityRotation(
+            entityId,
+            yaw,
+            pitch,
+            onGround
+        );
+
         for (Player p : sendTo) sendPacket(p, packet);
     }
 
@@ -101,13 +115,15 @@ public class PacketManager {
     ) {
         float ROTATION_FACTOR = 256.0F / 360.0F;
         float yaw2 = yaw * ROTATION_FACTOR;
-        PacketContainer packet = new PacketContainer(PacketType.Play.Server.ENTITY_LOOK);
-        packet.getIntegers().write(0, entityId);
-        packet.getBytes().write(0, (byte) yaw2);
-        packet.getBytes().write(1, (byte) 0);
 
-        //Bukkit.getLogger().info("DEBUG: Yaw: " + (location.getYaw() * ROTATION_FACTOR) + " | Original Yaw: " + location.getYaw());
-        packet.getBooleans().write(0, onGround);
+        // TODO: Verify that is the right packet (ProtocolLib called the packet type: ENTITY_LOOK)
+        WrapperPlayServerEntityRotation packet = new WrapperPlayServerEntityRotation(
+            entityId,
+            yaw2,
+            0,
+            onGround
+        );
+
         for (Player p : sendTo) sendPacket(p, packet);
     }
 
@@ -124,9 +140,11 @@ public class PacketManager {
             final int[] passengerIds,
             final @NotNull List<Player> sendTo
     ) {
-        PacketContainer packet = new PacketContainer(PacketType.Play.Server.MOUNT);
-        packet.getIntegers().write(0, mountId);
-        packet.getIntegerArrays().write(0, passengerIds);
+        WrapperPlayServerSetPassengers packet = new WrapperPlayServerSetPassengers(
+            mountId,
+            passengerIds
+        );
+
         for (final Player p : sendTo) {
             sendPacket(p, packet);
         }
@@ -138,8 +156,10 @@ public class PacketManager {
      * @param sendTo The players the packet should be sent to
      */
     public static void sendEntityDestroyPacket(final int entityId, @NotNull List<Player> sendTo) {
-        PacketContainer packet = new PacketContainer(PacketType.Play.Server.ENTITY_DESTROY);
-        packet.getModifier().write(0, new IntArrayList(new int[]{entityId}));
+        WrapperPlayServerDestroyEntities packet = new WrapperPlayServerDestroyEntities(
+            entityId
+        );
+
         for (final Player p : sendTo) sendPacket(p, packet);
     }
 
@@ -148,10 +168,10 @@ public class PacketManager {
      * @param sendTo The players the packet should be sent to
      */
     public static void sendEntityDestroyPacket(final List<Integer> ids, @NotNull List<Player> sendTo) {
-        PacketContainer packet = new PacketContainer(PacketType.Play.Server.ENTITY_DESTROY);
-        IntArrayList entities = new IntArrayList(new int[]{});
-        for (int id : ids) entities.add(id);
-        packet.getModifier().write(0, entities);
+        WrapperPlayServerDestroyEntities packet = new WrapperPlayServerDestroyEntities(
+            Ints.toArray(ids)
+        );
+
         for (final Player p : sendTo) sendPacket(p, packet);
     }
 
@@ -161,8 +181,8 @@ public class PacketManager {
      * @param sendTo The players that will be sent this packet
      */
     public static void sendCameraPacket(final int entityId, @NotNull List<Player> sendTo) {
-        PacketContainer packet = new PacketContainer(PacketType.Play.Server.CAMERA);
-        packet.getIntegers().write(0, entityId);
+        WrapperPlayServerCamera packet = new WrapperPlayServerCamera(entityId);
+
         for (final Player p : sendTo) sendPacket(p, packet);
         MessagesUtil.sendDebugMessages(sendTo + " | " + entityId + " has had a camera packet on them!");
     }
@@ -172,9 +192,12 @@ public class PacketManager {
             final int entityId,
             final @NotNull List<Player> sendTo
     ) {
-        PacketContainer packet = new PacketContainer(PacketType.Play.Server.ATTACH_ENTITY);
-        packet.getIntegers().write(0, leashedEntity);
-        packet.getIntegers().write(1, entityId);
+        WrapperPlayServerAttachEntity packet = new WrapperPlayServerAttachEntity(
+            leashedEntity,
+             entityId,
+            true
+        );
+
         for (final Player p : sendTo) {
             sendPacket(p, packet);
         }
@@ -193,14 +216,12 @@ public class PacketManager {
             boolean onGround,
             final @NotNull List<Player> sendTo
     ) {
-        PacketContainer packet = new PacketContainer(PacketType.Play.Server.ENTITY_TELEPORT);
-        packet.getIntegers().write(0, entityId);
-        packet.getDoubles().write(0, location.getX());
-        packet.getDoubles().write(1, location.getY());
-        packet.getDoubles().write(2, location.getZ());
-        packet.getBytes().write(0, (byte) (location.getYaw() * 256.0F / 360.0F));
-        packet.getBytes().write(1, (byte) (location.getPitch() * 256.0F / 360.0F));
-        packet.getBooleans().write(0, onGround);
+        WrapperPlayServerEntityTeleport packet = new WrapperPlayServerEntityTeleport(
+            entityId,
+            SpigotConversionUtil.fromBukkitLocation(location),
+            onGround
+        );
+
         for (final Player p : sendTo) {
             sendPacket(p, packet);
         }
@@ -253,9 +274,8 @@ public class PacketManager {
         return players;
     }
 
-    public static void sendPacket(Player player, PacketContainer packet) {
+    public static void sendPacket(Player player, PacketWrapper<?> packet) {
         if (player == null) return;
-        ProtocolLibrary.getProtocolManager().sendServerPacket(player, packet, null,false);
+        PacketEvents.getAPI().getProtocolManager().sendPacket(player, packet);
     }
-
 }
