@@ -171,7 +171,7 @@ bukkit {
     main = "me.lojosho.hibiscuscommons.HibiscusCommonsPlugin"
     apiVersion = "1.19"
     authors = listOf("LoJoSho")
-    depend = listOf("PacketEvents")
+    depend = listOf("packetevents")
     softDepend = listOf(
         "ModelEngine",
         "Oraxen",
