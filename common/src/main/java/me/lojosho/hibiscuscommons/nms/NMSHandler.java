@@ -1,5 +1,8 @@
 package me.lojosho.hibiscuscommons.nms;
 
+import io.github.retrooper.packetevents.util.SpigotConversionUtil;
+import org.bukkit.Bukkit;
+import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
@@ -12,7 +15,16 @@ public interface NMSHandler {
 
     int getNextEntityId();
 
-    Entity getEntity(int entityId);
+    default Entity getEntity(int entityId) {
+        for (World world : Bukkit.getWorlds()) {
+            Entity entity = SpigotConversionUtil.getEntityById(world, entityId);
+            if (entity != null) {
+                return entity;
+            }
+        }
+
+        return null;
+    }
 
     void slotUpdate(
             Player player,

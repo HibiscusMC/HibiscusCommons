@@ -36,18 +36,6 @@ public class NMSHandler implements me.lojosho.hibiscuscommons.nms.NMSHandler {
         return net.minecraft.world.entity.Entity.nextEntityId();
     }
 
-    @Override
-    public org.bukkit.entity.Entity getEntity(int entityId) {
-        for (World world : Bukkit.getWorlds()) {
-            Entity entity = SpigotConversionUtil.getEntityById(world, entityId);
-            if (entity != null) {
-                return entity;
-            }
-        }
-
-        return null;
-    }
-
     private net.minecraft.world.entity.Entity getNMSEntity(int entityId) {
         Entity entity = getEntity(entityId);
         return entity != null ? ((CraftEntity) entity).getHandle() : null;
