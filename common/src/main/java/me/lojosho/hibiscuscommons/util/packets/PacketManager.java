@@ -135,14 +135,7 @@ public class PacketManager {
     ) {
         float ROTATION_FACTOR = 256.0F / 360.0F;
         float yaw2 = yaw * ROTATION_FACTOR;
-        PacketContainer packet = new PacketContainer(PacketType.Play.Server.ENTITY_LOOK);
-        packet.getIntegers().write(0, entityId);
-        packet.getBytes().write(0, (byte) yaw2);
-        packet.getBytes().write(1, (byte) 0);
-
-        //Bukkit.getLogger().info("DEBUG: Yaw: " + (location.getYaw() * ROTATION_FACTOR) + " | Original Yaw: " + location.getYaw());
-        packet.getBooleans().write(0, onGround);
-        for (Player p : sendTo) sendPacket(p, packet);
+        NMSHandlers.getHandler().rotation(entityId, yaw2, onGround, sendTo);
     }
 
     public static void sendRidingPacket(
@@ -158,12 +151,7 @@ public class PacketManager {
             final int[] passengerIds,
             final @NotNull List<Player> sendTo
     ) {
-        PacketContainer packet = new PacketContainer(PacketType.Play.Server.MOUNT);
-        packet.getIntegers().write(0, mountId);
-        packet.getIntegerArrays().write(0, passengerIds);
-        for (final Player p : sendTo) {
-            sendPacket(p, packet);
-        }
+        NMSHandlers.getHandler().mount(mountId, passengerIds, sendTo);
     }
 
     /**
@@ -172,9 +160,7 @@ public class PacketManager {
      * @param sendTo The players that will be sent this packet
      */
     public static void sendCameraPacket(final int entityId, @NotNull List<Player> sendTo) {
-        PacketContainer packet = new PacketContainer(PacketType.Play.Server.CAMERA);
-        packet.getIntegers().write(0, entityId);
-        for (final Player p : sendTo) sendPacket(p, packet);
+        NMSHandlers.getHandler().camera(entityId, sendTo);
         MessagesUtil.sendDebugMessages(sendTo + " | " + entityId + " has had a camera packet on them!");
     }
 
@@ -183,12 +169,7 @@ public class PacketManager {
             final int entityId,
             final @NotNull List<Player> sendTo
     ) {
-        PacketContainer packet = new PacketContainer(PacketType.Play.Server.ATTACH_ENTITY);
-        packet.getIntegers().write(0, leashedEntity);
-        packet.getIntegers().write(1, entityId);
-        for (final Player p : sendTo) {
-            sendPacket(p, packet);
-        }
+        NMSHandlers.getHandler().leash(leashedEntity, entityId, sendTo);
     }
 
     /**
@@ -204,18 +185,7 @@ public class PacketManager {
             boolean onGround,
             final @NotNull List<Player> sendTo
     ) {
-        NMSHandlers.getHandler().teleport(entityId)
-        PacketContainer packet = new PacketContainer(PacketType.Play.Server.ENTITY_TELEPORT);
-        packet.getIntegers().write(0, entityId);
-        packet.getDoubles().write(0, location.getX());
-        packet.getDoubles().write(1, location.getY());
-        packet.getDoubles().write(2, location.getZ());
-        packet.getBytes().write(0, (byte) (location.getYaw() * 256.0F / 360.0F));
-        packet.getBytes().write(1, (byte) (location.getPitch() * 256.0F / 360.0F));
-        packet.getBooleans().write(0, onGround);
-        for (final Player p : sendTo) {
-            sendPacket(p, packet);
-        }
+        NMSHandlers.getHandler().teleport(entityId, location, onGround, sendTo);
     }
 
 
