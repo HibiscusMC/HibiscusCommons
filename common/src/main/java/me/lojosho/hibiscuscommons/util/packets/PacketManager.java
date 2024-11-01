@@ -1,18 +1,17 @@
 package me.lojosho.hibiscuscommons.util.packets;
 
 import com.comphenix.protocol.PacketType;
-import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.events.PacketContainer;
-import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntList;
 import me.lojosho.hibiscuscommons.nms.NMSHandlers;
 import me.lojosho.hibiscuscommons.util.MessagesUtil;
 import org.bukkit.Location;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.*;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -28,22 +27,57 @@ public class PacketManager {
             final UUID uuid,
             final @NotNull List<Player> sendTo
     ) {
-        PacketContainer packet = new PacketContainer(PacketType.Play.Server.SPAWN_ENTITY);
-        packet.getModifier().writeDefaults();
-        packet.getUUIDs().write(0, uuid);
-        packet.getIntegers().write(0, entityId);
-        packet.getEntityTypeModifier().write(0, entityType);
-        packet.getDoubles().
-                write(0, location.getX()).
-                write(1, location.getY()).
-                write(2, location.getZ());
-        for (Player p : sendTo) sendPacket(p, packet);
+        NMSHandlers.getHandler().entitySpawn(entityId, uuid, entityType, location, sendTo);
+    }
+
+    /**
+     * Destroys an entity from a player
+     * @param entityId The entity to delete for a player
+     * @param sendTo The players the packet should be sent to
+     */
+    public static void sendEntityDestroyPacket(
+            final int entityId,
+            final @NotNull List<Player> sendTo
+    ) {
+        NMSHandlers.getHandler().entityDestroy(entityId, sendTo);
+    }
+
+    /**
+     * Destroys a list of entities from a player
+     * @param entityIds The entities to delete for a player
+     * @param sendTo The players the packet should be sent to
+     */
+    public static void sendEntityDestroyPacket(
+            final IntList entityIds,
+            final @NotNull List<Player> sendTo
+    ) {
+        NMSHandlers.getHandler().entityDestroy(entityIds, sendTo);
+    }
+
+    public static void sendItemDisplayMetadataPacket(
+            final int entityId,
+            final Vector3f translation,
+            final Vector3f scale,
+            final Quaternionf rotationLeft,
+            final Quaternionf rotationRight,
+            final Display.Billboard billboard,
+            final int blockLight,
+            final int skyLight,
+            final float viewRange,
+            final float width,
+            final float height,
+            final ItemDisplay.ItemDisplayTransform transform,
+            final ItemStack itemStack,
+            final List<Player> sendTo
+    ) {
+        NMSHandlers.getHandler().itemDisplayMetadata(entityId, translation, scale, rotationLeft, rotationRight, billboard, blockLight, skyLight, viewRange, width, height, transform, itemStack, sendTo);
     }
 
     public static void gamemodeChangePacket(
             Player player,
             int gamemode
     ) {
+        NMSHandlers.getHandler().gamemodeChange(player, gamemode);
         PacketContainer packet = new PacketContainer(PacketType.Play.Server.GAME_STATE_CHANGE);
         packet.getGameStateIDs().write(0, 3);
         // Tells what event this is. This is a change gamemode event.
@@ -101,14 +135,7 @@ public class PacketManager {
     ) {
         float ROTATION_FACTOR = 256.0F / 360.0F;
         float yaw2 = yaw * ROTATION_FACTOR;
-        PacketContainer packet = new PacketContainer(PacketType.Play.Server.ENTITY_LOOK);
-        packet.getIntegers().write(0, entityId);
-        packet.getBytes().write(0, (byte) yaw2);
-        packet.getBytes().write(1, (byte) 0);
-
-        //Bukkit.getLogger().info("DEBUG: Yaw: " + (location.getYaw() * ROTATION_FACTOR) + " | Original Yaw: " + location.getYaw());
-        packet.getBooleans().write(0, onGround);
-        for (Player p : sendTo) sendPacket(p, packet);
+        NMSHandlers.getHandler().rotation(entityId, yaw2, onGround, sendTo);
     }
 
     public static void sendRidingPacket(
@@ -124,35 +151,7 @@ public class PacketManager {
             final int[] passengerIds,
             final @NotNull List<Player> sendTo
     ) {
-        PacketContainer packet = new PacketContainer(PacketType.Play.Server.MOUNT);
-        packet.getIntegers().write(0, mountId);
-        packet.getIntegerArrays().write(0, passengerIds);
-        for (final Player p : sendTo) {
-            sendPacket(p, packet);
-        }
-    }
-
-    /**
-     * Destroys an entity from a player
-     * @param entityId The entity to delete for a player
-     * @param sendTo The players the packet should be sent to
-     */
-    public static void sendEntityDestroyPacket(final int entityId, @NotNull List<Player> sendTo) {
-        PacketContainer packet = new PacketContainer(PacketType.Play.Server.ENTITY_DESTROY);
-        packet.getModifier().write(0, new IntArrayList(new int[]{entityId}));
-        for (final Player p : sendTo) sendPacket(p, packet);
-    }
-
-    /**
-     * Destroys an entity from a player
-     * @param sendTo The players the packet should be sent to
-     */
-    public static void sendEntityDestroyPacket(final List<Integer> ids, @NotNull List<Player> sendTo) {
-        PacketContainer packet = new PacketContainer(PacketType.Play.Server.ENTITY_DESTROY);
-        IntArrayList entities = new IntArrayList(new int[]{});
-        for (int id : ids) entities.add(id);
-        packet.getModifier().write(0, entities);
-        for (final Player p : sendTo) sendPacket(p, packet);
+        NMSHandlers.getHandler().mount(mountId, passengerIds, sendTo);
     }
 
     /**
@@ -161,9 +160,7 @@ public class PacketManager {
      * @param sendTo The players that will be sent this packet
      */
     public static void sendCameraPacket(final int entityId, @NotNull List<Player> sendTo) {
-        PacketContainer packet = new PacketContainer(PacketType.Play.Server.CAMERA);
-        packet.getIntegers().write(0, entityId);
-        for (final Player p : sendTo) sendPacket(p, packet);
+        NMSHandlers.getHandler().camera(entityId, sendTo);
         MessagesUtil.sendDebugMessages(sendTo + " | " + entityId + " has had a camera packet on them!");
     }
 
@@ -172,12 +169,7 @@ public class PacketManager {
             final int entityId,
             final @NotNull List<Player> sendTo
     ) {
-        PacketContainer packet = new PacketContainer(PacketType.Play.Server.ATTACH_ENTITY);
-        packet.getIntegers().write(0, leashedEntity);
-        packet.getIntegers().write(1, entityId);
-        for (final Player p : sendTo) {
-            sendPacket(p, packet);
-        }
+        NMSHandlers.getHandler().leash(leashedEntity, entityId, sendTo);
     }
 
     /**
@@ -193,17 +185,7 @@ public class PacketManager {
             boolean onGround,
             final @NotNull List<Player> sendTo
     ) {
-        PacketContainer packet = new PacketContainer(PacketType.Play.Server.ENTITY_TELEPORT);
-        packet.getIntegers().write(0, entityId);
-        packet.getDoubles().write(0, location.getX());
-        packet.getDoubles().write(1, location.getY());
-        packet.getDoubles().write(2, location.getZ());
-        packet.getBytes().write(0, (byte) (location.getYaw() * 256.0F / 360.0F));
-        packet.getBytes().write(1, (byte) (location.getPitch() * 256.0F / 360.0F));
-        packet.getBooleans().write(0, onGround);
-        for (final Player p : sendTo) {
-            sendPacket(p, packet);
-        }
+        NMSHandlers.getHandler().teleport(entityId, location, onGround, sendTo);
     }
 
 
@@ -246,16 +228,9 @@ public class PacketManager {
     private static List<Player> getNearbyPlayers(Location location, int distance) {
         List<Player> players = new ArrayList<>();
         for (Entity entity : location.getWorld().getNearbyEntities(location, distance, distance, distance)) {
-            if (entity instanceof Player) {
-                players.add((Player) entity);
-            }
+            if (entity instanceof Player player) players.add(player);
         }
         return players;
-    }
-
-    public static void sendPacket(Player player, PacketContainer packet) {
-        if (player == null) return;
-        ProtocolLibrary.getProtocolManager().sendServerPacket(player, packet, null,false);
     }
 
 }
