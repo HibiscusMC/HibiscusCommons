@@ -1,6 +1,11 @@
 package me.lojosho.hibiscuscommons.hooks.items;
 
+import com.mineinabyss.geary.papermc.GearyPaper;
+import com.mineinabyss.geary.papermc.GearyPaperKt;
+import com.mineinabyss.geary.papermc.GearyPaperModule;
+import com.mineinabyss.geary.papermc.GearyPaperModuleKt;
 import com.mineinabyss.geary.papermc.tracking.items.ItemTrackingKt;
+import com.mineinabyss.geary.papermc.tracking.items.ItemTrackingModule;
 import com.mineinabyss.geary.prefabs.PrefabKey;
 import me.lojosho.hibiscuscommons.hooks.Hook;
 import me.lojosho.hibiscuscommons.hooks.HookFlag;
@@ -12,6 +17,8 @@ import org.jetbrains.annotations.NotNull;
  */
 public class HookGeary extends Hook {
 
+    private ItemTrackingModule itemTracking = null;
+
     public HookGeary() {
         super("geary", HookFlag.ITEM_SUPPORT);
     }
@@ -21,8 +28,9 @@ public class HookGeary extends Hook {
      */
     @Override
     public ItemStack getItem(@NotNull String itemId) {
+        if (itemTracking == null) itemTracking = GearyPaperModuleKt.getGearyPaper().getWorldManager().getGlobal().getAddon(ItemTrackingKt.getItemTracking());
         PrefabKey prefabKey = PrefabKey.Companion.ofOrNull(itemId);
         if (prefabKey == null) return null;
-        return ItemTrackingKt.getGearyItems().createItem(prefabKey, null);
+        return itemTracking.createItem(prefabKey, null);
     }
 }

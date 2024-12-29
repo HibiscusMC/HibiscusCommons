@@ -20,8 +20,9 @@ public final class HibiscusCommonsPlugin extends HibiscusPlugin {
     public void onStart() {
         instance = this;
 
-        if (!NMSHandlers.isVersionSupported()) {
-            getLogger().severe("This version is not supported! Consider switching versions?");
+        try {
+            NMSHandlers.setup();
+        } catch (RuntimeException e) {
             getServer().getPluginManager().disablePlugin(this);
             return;
         }

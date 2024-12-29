@@ -19,6 +19,7 @@ import java.util.HashMap;
 public class Hooks {
 
     private static final HashMap<String, Hook> hooks = new HashMap<>();
+    private static final HookNexo NEXO_HOOK = new HookNexo();
     private static final HookOraxen ORAXEN_HOOK = new HookOraxen();
     private static final HookItemAdder ITEMADDER_HOOK = new HookItemAdder();
     private static final HookGeary GEARY_HOOK = new HookGeary();
@@ -34,7 +35,7 @@ public class Hooks {
     private static final HookEco ECO_ITEMS_HOOK = new HookEco();
     private static final HookPlaceholderAPI PAPI_HOOK = new HookPlaceholderAPI();
     private static final HookCustomFishing CF_HOOK = new HookCustomFishing();
-
+    private static final HookGSit GSIT_HOOK = new HookGSit();
 
     public static Hook getHook(@NotNull String id) {
         return hooks.get(id.toLowerCase());

@@ -3,16 +3,15 @@ import net.minecrell.pluginyml.bukkit.BukkitPluginDescription
 plugins {
     id("java")
     id("maven-publish")
-    id("io.github.goooler.shadow") version "8.1.7" // Temp shadow repo with fix
-    //id("com.github.johnrengelman.shadow") version "8.1.1"
+    id("com.gradleup.shadow") version "8.3.4"
     id("net.minecrell.plugin-yml.bukkit") version "0.6.0"
+    id("xyz.jpenilla.run-paper") version "2.3.1"
+    id("io.papermc.paperweight.userdev") version "1.7.4" apply false
     //id("io.papermc.hangar-publish-plugin") version "0.1.1"
-    id("xyz.jpenilla.run-paper") version "2.0.0"
-    id("io.papermc.paperweight.userdev") version "1.7.1" apply false
 }
 
 group = "me.lojosho"
-version = "0.5.0"
+version = "0.5.2${getGitCommitHash()}"
 
 allprojects {
     apply(plugin = "java")
@@ -25,7 +24,10 @@ allprojects {
         maven("https://oss.sonatype.org/content/repositories/snapshots")
 
         // UpdateChecker
-        maven("https://repo.jeff-media.com/public/")
+        maven("https://repo.jeff-media.com/public")
+
+        // Nexo
+        maven("https://repo.nexomc.com/snapshots/")
 
         // Geary
         maven("https://repo.mineinabyss.com/releases/")
@@ -52,6 +54,12 @@ allprojects {
         // PlaceholderAPI
         maven("https://repo.extendedclip.com/content/repositories/placeholderapi/")
 
+        // Oraxen
+        maven("https://repo.oraxen.com/releases")
+
+        // Needed for brigadier for dependencies (I
+        maven("https://libraries.minecraft.net/")
+
         // MythicMobs
         maven {
             url = uri("https://mvn.lumine.io/repository/maven-public")
@@ -66,11 +74,12 @@ allprojects {
 
         // Included externally
         compileOnly("com.mojang:authlib:1.5.25")
-        compileOnly("org.spigotmc:spigot-api:1.19.4-R0.1-SNAPSHOT")
-        compileOnly("org.jetbrains:annotations:24.1.0")
-        compileOnly("com.github.oraxen:oraxen:1.160.0")
+        compileOnly("org.spigotmc:spigot-api:1.20.1-R0.1-SNAPSHOT")
+        compileOnly("org.jetbrains:annotations:26.0.1")
+        compileOnly("io.th0rgal:oraxen:1.182.0")
+        compileOnly("com.nexomc:nexo:0.1.0-dev.0")
         compileOnly("com.github.LoneDev6:API-ItemsAdder:3.6.3-beta-14")
-        compileOnly("com.mineinabyss:geary-papermc:0.27.0")
+        compileOnly("com.mineinabyss:geary-papermc:0.31.0-dev.4")
         compileOnly("it.unimi.dsi:fastutil:8.5.13")
         compileOnly("com.denizenscript:denizen:1.2.7-SNAPSHOT")
         compileOnly("io.lumine:Mythic-Dist:5.2.1")
@@ -79,21 +88,23 @@ allprojects {
         compileOnly("com.willfp:eco:6.67.2")
         compileOnly("com.github.retrooper:packetevents-spigot:2.4.0")
         compileOnly("me.clip:placeholderapi:2.11.6")
-        compileOnly("LibsDisguises:LibsDisguises:10.0.21") {
+        compileOnly("LibsDisguises:LibsDisguises:10.0.44") {
             exclude("org.spigotmc", "spigot")
         }
-        compileOnly("com.github.Xiao-MoMi:Custom-Fishing:2.2.20")
+        compileOnly("com.github.Xiao-MoMi:Custom-Fishing:2.2.26")
         compileOnly("com.ticxo.modelengine:ModelEngine:R4.0.2")
+        compileOnly("com.comphenix.protocol:ProtocolLib:5.3.0")
 
         // Lombok <3
         annotationProcessor("org.projectlombok:lombok:1.18.34")
+        compileOnly("org.projectlombok:lombok:1.18.34")
         testCompileOnly("org.projectlombok:lombok:1.18.34")
         testAnnotationProcessor("org.projectlombok:lombok:1.18.34")
 
         // Spigot Auto Loader Libraries
         compileOnly("net.kyori:adventure-api:4.17.0")
         compileOnly("net.kyori:adventure-text-minimessage:4.17.0")
-        compileOnly("net.kyori:adventure-platform-bukkit:4.3.3")
+        compileOnly("net.kyori:adventure-platform-bukkit:4.3.4")
         compileOnly("org.apache.commons:commons-lang3:3.14.0")
 
         // Shaded Dependencies
@@ -106,12 +117,12 @@ allprojects {
 
 dependencies {
     implementation(project(path = ":common"))
-    implementation(project(path = ":v1_19_R3", configuration = "reobf"))
     implementation(project(path = ":v1_20_R1", configuration = "reobf"))
     implementation(project(path = ":v1_20_R2", configuration = "reobf"))
     implementation(project(path = ":v1_20_R3", configuration = "reobf"))
     implementation(project(path = ":v1_20_R4", configuration = "reobf"))
     implementation(project(path = ":v1_21_R1", configuration = "reobf"))
+    implementation(project(path = ":v1_21_R2", configuration = "reobf"))
 }
 
 tasks {
@@ -122,7 +133,8 @@ tasks {
 
     runServer {
         dependsOn(shadowJar)
-        minecraftVersion("1.20.6")
+        dependsOn(jar)
+        minecraftVersion("1.21.1")
     }
 
     javadoc {
@@ -135,12 +147,12 @@ tasks {
     }
 
     shadowJar {
-        dependsOn(":v1_19_R3:reobfJar")
         dependsOn(":v1_20_R1:reobfJar")
         dependsOn(":v1_20_R2:reobfJar")
         dependsOn(":v1_20_R3:reobfJar")
         dependsOn(":v1_20_R4:reobfJar")
         dependsOn(":v1_21_R1:reobfJar")
+        dependsOn(":v1_21_R2:reobfJar")
         mergeServiceFiles()
 
         relocate("org.bstats", "me.lojosho.shaded.bstats")
@@ -169,7 +181,7 @@ tasks {
 bukkit {
     load = BukkitPluginDescription.PluginLoadOrder.POSTWORLD
     main = "me.lojosho.hibiscuscommons.HibiscusCommonsPlugin"
-    apiVersion = "1.19"
+    apiVersion = "1.20"
     authors = listOf("LoJoSho")
     depend = listOf("packetevents")
     softDepend = listOf(
@@ -186,7 +198,8 @@ bukkit {
         "LibsDisguises",
         "Denizen",
         "MMOItems",
-        "Eco"
+        "Eco",
+        "Nexo"
     )
     version = "${project.version}"
     loadBefore = listOf(
@@ -196,7 +209,7 @@ bukkit {
     libraries = listOf(
         "net.kyori:adventure-api:4.17.0",
         "net.kyori:adventure-text-minimessage:4.17.0",
-        "net.kyori:adventure-platform-bukkit:4.3.3",
+        "net.kyori:adventure-platform-bukkit:4.3.4",
         "org.apache.commons:commons-lang3:3.14.0"
         //"org.spongepowered:configurate-yaml:4.2.0-SNAPSHOT" // Readd when 4.2.0 releases
     )
@@ -292,4 +305,24 @@ class PublishData(private val project: Project) {
         fun append(name: String, appendCommit: Boolean, commitHash: String): String =
             name.plus(append).plus(if (appendCommit && addCommit) "-".plus(commitHash) else "")
     }
+}
+
+fun getGitCommitHash(): String {
+    var includeHash = true
+    val includeHashVariable = System.getenv("HMCC_INCLUDE_HASH")
+
+    if (!includeHashVariable.isNullOrEmpty()) includeHash = includeHashVariable.toBoolean()
+
+    if (includeHash) {
+        return try {
+            val process = ProcessBuilder("git", "rev-parse", "--short", "HEAD")
+                .redirectErrorStream(true)
+                .start()
+
+            process.inputStream.bufferedReader().use { "-" + it.readLine().trim() }
+        } catch (e: Exception) {
+            "-unknown" // Fallback if Git is not available or an error occurs
+        }
+    }
+    return ""
 }

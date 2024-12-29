@@ -51,32 +51,36 @@ public abstract class HibiscusPlugin extends JavaPlugin {
             Metrics metrics = new Metrics(this, bstats);
         }
         if (resourceID > 0) {
-            // Update Checker
-            UpdateChecker checker = new UpdateChecker(this, UpdateCheckSource.POLYMART, String.valueOf(resourceID))
-                    .onSuccess((commandSenders, latestVersion) -> {
-                        this.latestVersion = (String) latestVersion;
-                        String pluginName = getDescription().getName();
-
-                        if (!this.latestVersion.equalsIgnoreCase(getDescription().getVersion())) {
-                            getLogger().info("+++++++++++++++++++++++++++++++++++");
-                            getLogger().info("There is a new update for " + pluginName + "!");
-                            getLogger().info("Please download it as soon as possible for possible fixes and new features.");
-                            getLogger().info("Current Version " + getDescription().getVersion() + " | Latest Version " + latestVersion);
-                            //getLogger().info("Spigot: https://www.spigotmc.org/resources/100107/");
-                            getLogger().info("Polymart: https://polymart.org/resource/" + resourceID);
-                            getLogger().info("+++++++++++++++++++++++++++++++++++");
-                        } else {
-                            getLogger().info("You are running the latest version of " + pluginName + "!");
-                        }
-                    })
-                    .setNotifyRequesters(false)
-                    .setNotifyOpsOnJoin(false)
-                    .checkEveryXHours(24)
-                    .checkNow();
-            onLatestVersion = checker.isUsingLatestVersion();
+            setupResourceUpdateChecker(this, resourceID);
         }
 
         onStart();
+    }
+
+    private void setupResourceUpdateChecker(HibiscusPlugin plugin, int resourceID) {
+        // Update Checker
+        UpdateChecker checker = new UpdateChecker(plugin, UpdateCheckSource.POLYMART, String.valueOf(resourceID))
+                .onSuccess((commandSenders, latestVersion) -> {
+                    this.latestVersion = (String) latestVersion;
+                    String pluginName = getDescription().getName();
+
+                    if (!this.latestVersion.equalsIgnoreCase(getDescription().getVersion())) {
+                        getLogger().info("+++++++++++++++++++++++++++++++++++");
+                        getLogger().info("There is a new update for " + pluginName + "!");
+                        getLogger().info("Please download it as soon as possible for possible fixes and new features.");
+                        getLogger().info("Current Version " + getDescription().getVersion() + " | Latest Version " + latestVersion);
+                        //getLogger().info("Spigot: https://www.spigotmc.org/resources/100107/");
+                        getLogger().info("Polymart: https://polymart.org/resource/" + resourceID);
+                        getLogger().info("+++++++++++++++++++++++++++++++++++");
+                    } else {
+                        getLogger().info("You are running the latest version of " + pluginName + "!");
+                    }
+                })
+                .setNotifyRequesters(false)
+                .setNotifyOpsOnJoin(false)
+                .checkEveryXHours(24)
+                .checkNow();
+        onLatestVersion = checker.isUsingLatestVersion();
     }
 
 
