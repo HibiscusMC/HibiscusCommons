@@ -268,7 +268,7 @@ public class PacketManager {
         WrapperPlayServerEntityEquipment packet = new WrapperPlayServerEntityEquipment(
             entityId,
             Collections.singletonList(new Equipment(
-                EquipmentSlot.valueOf(slot.name()),
+                PEConverter.convertEquipmentSlot(slot),
                 SpigotConversionUtil.fromBukkitItemStack(item)
             ))
         );
@@ -287,7 +287,7 @@ public class PacketManager {
             entityId,
             equipmentMap.entrySet().stream()
                 .map(entry -> new Equipment(
-                    EquipmentSlot.valueOf(entry.getKey().name()),
+                    PEConverter.convertEquipmentSlot(entry.getKey()),
                     SpigotConversionUtil.fromBukkitItemStack(entry.getValue())
                 ))
                 .toList()
