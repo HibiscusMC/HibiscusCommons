@@ -32,6 +32,10 @@ public final class HibiscusCommonsPlugin extends HibiscusPlugin {
             onPaper = true;
             getLogger().info("Detected Paper! Enabling Paper support...");
             //getServer().getPluginManager().registerEvents(new PaperPlayerGameListener(), this);
+        } else {
+            getLogger().warning("Paper was not detected! Some features may not work as expected.");
+            getLogger().warning("Please consider using Paper for the best experience.");
+            getLogger().warning("Download Paper at: https://papermc.io/");
         }
 
         // Plugin startup logic

@@ -6,12 +6,12 @@ plugins {
     id("com.gradleup.shadow") version "8.3.4"
     id("net.minecrell.plugin-yml.bukkit") version "0.6.0"
     id("xyz.jpenilla.run-paper") version "2.3.1"
-    id("io.papermc.paperweight.userdev") version "1.7.4" apply false
+    id("io.papermc.paperweight.userdev") apply false
     //id("io.papermc.hangar-publish-plugin") version "0.1.1"
 }
 
 group = "me.lojosho"
-version = "0.5.2${getGitCommitHash()}"
+version = "0.6.0${getGitCommitHash()}"
 
 allprojects {
     apply(plugin = "java")
@@ -22,6 +22,9 @@ allprojects {
         maven("https://hub.spigotmc.org/nexus/content/repositories/snapshots/")
         maven("https://oss.sonatype.org/content/groups/public/")
         maven("https://oss.sonatype.org/content/repositories/snapshots")
+
+        // Paper Repo
+        maven("https://papermc.io/repo/repository/maven-public/")
 
         // UpdateChecker
         maven("https://repo.jeff-media.com/public")
@@ -74,10 +77,11 @@ allprojects {
 
         // Included externally
         compileOnly("com.mojang:authlib:1.5.25")
-        compileOnly("org.spigotmc:spigot-api:1.20.1-R0.1-SNAPSHOT")
+        //compileOnly("org.spigotmc:spigot-api:1.20.1-R0.1-SNAPSHOT")
+        compileOnly("io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT")
         compileOnly("org.jetbrains:annotations:26.0.1")
         compileOnly("io.th0rgal:oraxen:1.182.0")
-        compileOnly("com.nexomc:nexo:0.1.0-dev.0")
+        compileOnly("com.nexomc:nexo:0.8.0-dev.8")
         compileOnly("com.github.LoneDev6:API-ItemsAdder:3.6.3-beta-14")
         compileOnly("com.mineinabyss:geary-papermc:0.31.0-dev.4")
         compileOnly("it.unimi.dsi:fastutil:8.5.13")
@@ -93,6 +97,7 @@ allprojects {
         }
         compileOnly("com.github.Xiao-MoMi:Custom-Fishing:2.2.26")
         compileOnly("com.ticxo.modelengine:ModelEngine:R4.0.2")
+        compileOnly("org.joml:joml:1.10.5")
 
         // Lombok <3
         annotationProcessor("org.projectlombok:lombok:1.18.34")
@@ -101,8 +106,8 @@ allprojects {
         testAnnotationProcessor("org.projectlombok:lombok:1.18.34")
 
         // Spigot Auto Loader Libraries
-        compileOnly("net.kyori:adventure-api:4.17.0")
-        compileOnly("net.kyori:adventure-text-minimessage:4.17.0")
+        compileOnly("net.kyori:adventure-api:4.18.0")
+        compileOnly("net.kyori:adventure-text-minimessage:4.18.0")
         compileOnly("net.kyori:adventure-platform-bukkit:4.3.4")
         compileOnly("org.apache.commons:commons-lang3:3.14.0")
 
@@ -116,12 +121,11 @@ allprojects {
 
 dependencies {
     implementation(project(path = ":common"))
-    implementation(project(path = ":v1_20_R1", configuration = "reobf"))
-    implementation(project(path = ":v1_20_R2", configuration = "reobf"))
     implementation(project(path = ":v1_20_R3", configuration = "reobf"))
     implementation(project(path = ":v1_20_R4", configuration = "reobf"))
     implementation(project(path = ":v1_21_R1", configuration = "reobf"))
     implementation(project(path = ":v1_21_R2", configuration = "reobf"))
+    implementation(project(path = ":v1_21_R3", configuration = "reobf"))
 }
 
 tasks {
@@ -134,6 +138,11 @@ tasks {
         dependsOn(shadowJar)
         dependsOn(jar)
         minecraftVersion("1.21.1")
+
+        downloadPlugins {
+            hangar("PlaceholderAPI", "2.11.6")
+            url("https://download.luckperms.net/1567/bukkit/loader/LuckPerms-Bukkit-5.4.150.jar")
+        }
     }
 
     javadoc {
@@ -146,12 +155,11 @@ tasks {
     }
 
     shadowJar {
-        dependsOn(":v1_20_R1:reobfJar")
-        dependsOn(":v1_20_R2:reobfJar")
         dependsOn(":v1_20_R3:reobfJar")
         dependsOn(":v1_20_R4:reobfJar")
         dependsOn(":v1_21_R1:reobfJar")
         dependsOn(":v1_21_R2:reobfJar")
+        dependsOn(":v1_21_R3:reobfJar")
         mergeServiceFiles()
 
         relocate("org.bstats", "me.lojosho.shaded.bstats")
@@ -206,8 +214,8 @@ bukkit {
     )
 
     libraries = listOf(
-        "net.kyori:adventure-api:4.17.0",
-        "net.kyori:adventure-text-minimessage:4.17.0",
+        "net.kyori:adventure-api:4.18.0",
+        "net.kyori:adventure-text-minimessage:4.18.0",
         "net.kyori:adventure-platform-bukkit:4.3.4",
         "org.apache.commons:commons-lang3:3.14.0"
         //"org.spongepowered:configurate-yaml:4.2.0-SNAPSHOT" // Readd when 4.2.0 releases

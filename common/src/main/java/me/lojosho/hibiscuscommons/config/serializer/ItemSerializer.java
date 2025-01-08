@@ -1,10 +1,8 @@
 package me.lojosho.hibiscuscommons.config.serializer;
 
+import me.lojosho.hibiscuscommons.HibiscusCommonsPlugin;
 import me.lojosho.hibiscuscommons.hooks.Hooks;
-import me.lojosho.hibiscuscommons.util.ColorBuilder;
-import me.lojosho.hibiscuscommons.util.InventoryUtils;
-import me.lojosho.hibiscuscommons.util.ServerUtils;
-import me.lojosho.hibiscuscommons.util.StringUtils;
+import me.lojosho.hibiscuscommons.util.*;
 import org.apache.commons.lang3.EnumUtils;
 import org.bukkit.*;
 import org.bukkit.enchantments.Enchantment;
@@ -71,9 +69,7 @@ public class ItemSerializer implements TypeSerializer<ItemStack> {
         final ConfigurationNode blueNode = colorNode.node(BLUE);
 
         if (materialNode.virtual()) return null;
-
-        String material = materialNode.getString();
-
+        String material = materialNode.getString("");
         ItemStack item = Hooks.getItem(material);
         if (item == null) {
             //HMCCosmeticsPlugin.getInstance().getLogger().severe("Invalid Material -> " + material);
@@ -83,15 +79,28 @@ public class ItemSerializer implements TypeSerializer<ItemStack> {
 
         ItemMeta itemMeta = item.getItemMeta();
         if (itemMeta == null) return item;
-        if (!nameNode.virtual())
-            itemMeta.setDisplayName(StringUtils.parseStringToString((nameNode.getString(""))));
+
+        if (!nameNode.virtual()) {
+            if (HibiscusCommonsPlugin.isOnPaper()) {
+                itemMeta.displayName(AdventureUtils.MINI_MESSAGE.deserialize(nameNode.getString("")));
+            } else {
+                itemMeta.setDisplayName(StringUtils.parseStringToString(nameNode.getString("")));
+            }
+        }
         if (!unbreakableNode.virtual()) itemMeta.setUnbreakable(unbreakableNode.getBoolean());
         if (!glowingNode.virtual()) {
             itemMeta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
             itemMeta.addEnchant(Enchantment.LUCK, 1, true);
         }
-        if (!loreNode.virtual()) itemMeta.setLore(loreNode.getList(String.class, new ArrayList<String>()).
-                stream().map(StringUtils::parseStringToString).collect(Collectors.toList()));
+        if (!loreNode.virtual()) {
+            if (HibiscusCommonsPlugin.isOnPaper()) {
+                itemMeta.lore(loreNode.getList(String.class, new ArrayList<>()).
+                        stream().map(AdventureUtils.MINI_MESSAGE::deserialize).collect(Collectors.toList()));
+            } else {
+                itemMeta.setLore(loreNode.getList(String.class, new ArrayList<>()).
+                        stream().map(StringUtils::parseStringToString).collect(Collectors.toList()));
+            }
+        }
         if (!modelDataNode.virtual()) itemMeta.setCustomModelData(modelDataNode.getInt());
 
         if (!nbtNode.virtual()) {

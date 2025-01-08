@@ -7,6 +7,7 @@ import com.github.retrooper.packetevents.wrapper.play.server.*;
 import com.google.common.primitives.Ints;
 import io.github.retrooper.packetevents.util.SpigotConversionUtil;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntList;
 import me.lojosho.hibiscuscommons.nms.NMSHandlers;
 import me.lojosho.hibiscuscommons.util.MessagesUtil;
 import org.bukkit.Location;

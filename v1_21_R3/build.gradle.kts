@@ -1,11 +1,10 @@
 plugins {
     id("java")
-    id("io.papermc.paperweight.userdev") version "1.7.4"
+    id("io.papermc.paperweight.userdev")
 }
 
 dependencies {
-    paperweight.paperDevBundle("1.20.1-R0.1-SNAPSHOT")
-    pluginRemapper("net.fabricmc:tiny-remapper:0.10.4:fat")
+    paperweight.paperDevBundle("1.21.4-R0.1-SNAPSHOT")
     implementation(project(":common"))
 }
 
@@ -17,8 +16,11 @@ tasks {
 
     compileJava {
         options.encoding = Charsets.UTF_8.name()
-        options.release.set(21)
     }
+    java {
+        toolchain.languageVersion.set(JavaLanguageVersion.of(21));
+    }
+
     javadoc {
         options.encoding = Charsets.UTF_8.name()
     }

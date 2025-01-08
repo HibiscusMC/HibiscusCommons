@@ -1,9 +1,9 @@
-package me.lojosho.hibiscuscommons.nms.v1_20_R2;
+package me.lojosho.hibiscuscommons.nms.v1_21_R3;
 
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerPlayerConnection;
-import org.bukkit.craftbukkit.v1_20_R2.entity.CraftPlayer;
+import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 
 public class NMSCommon {

@@ -1,8 +1,8 @@
-package me.lojosho.hibiscuscommons.nms.v1_20_R2;
+package me.lojosho.hibiscuscommons.nms.v1_21_R3;
 
 import net.minecraft.server.level.ServerLevel;
 import org.bukkit.Bukkit;
-import org.bukkit.craftbukkit.v1_20_R2.CraftServer;
+import org.bukkit.craftbukkit.CraftServer;
 
 public class NMSUtils extends NMSCommon implements me.lojosho.hibiscuscommons.nms.NMSUtils {
 
