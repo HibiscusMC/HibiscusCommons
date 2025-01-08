@@ -1,8 +1,8 @@
 package me.lojosho.hibiscuscommons.nms.v1_21_R1;
 
-import net.minecraft.server.level.ServerLevel;
-import org.bukkit.Bukkit;
-import org.bukkit.craftbukkit.CraftServer;
+import net.minecraft.server.level.ServerPlayer;
+import org.bukkit.craftbukkit.entity.CraftPlayer;
+import org.bukkit.entity.Player;
 
 public class NMSUtils extends NMSCommon implements me.lojosho.hibiscuscommons.nms.NMSUtils {
 
@@ -12,18 +12,14 @@ public class NMSUtils extends NMSCommon implements me.lojosho.hibiscuscommons.nm
     }
 
     @Override
-    public org.bukkit.entity.Entity getEntity(int entityId) {
-        net.minecraft.world.entity.Entity entity = getNMSEntity(entityId);
-        if (entity == null) return null;
-        return entity.getBukkitEntity();
+    public int getInventoryId(Player bukkitPlayer) {
+        ServerPlayer player = ((CraftPlayer) bukkitPlayer).getHandle();
+        return player.inventoryMenu.containerId;
     }
 
-    private net.minecraft.world.entity.Entity getNMSEntity(int entityId) {
-        for (ServerLevel world : ((CraftServer) Bukkit.getServer()).getHandle().getServer().getAllLevels()) {
-            net.minecraft.world.entity.Entity entity = world.getEntity(entityId);
-            if (entity == null) continue;
-            return entity;
-        }
-        return null;
+    @Override
+    public int incrementInventoryStateId(Player bukkitPlayer) {
+        ServerPlayer player = ((CraftPlayer) bukkitPlayer).getHandle();
+        return player.inventoryMenu.incrementStateId();
     }
 }

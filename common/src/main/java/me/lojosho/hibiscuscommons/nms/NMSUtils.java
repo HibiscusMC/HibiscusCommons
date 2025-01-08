@@ -7,6 +7,15 @@ public interface NMSUtils {
 
     int getNextEntityId();
 
-    Entity getEntity(int entityId);
+    /**
+     * @deprecated Use {@link NMSHandler#getEntity(int)}
+     */
+    @Deprecated
+    default Entity getEntity(int entityId) {
+        return NMSHandlers.getHandler().getEntity(entityId);
+    }
 
+    int getInventoryId(Player bukkitPlayer);
+
+    int incrementInventoryStateId(Player bukkitPlayer);
 }

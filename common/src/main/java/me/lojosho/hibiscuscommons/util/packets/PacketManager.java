@@ -1,26 +1,30 @@
 package me.lojosho.hibiscuscommons.util.packets;
 
-import com.comphenix.protocol.PacketType;
-import com.comphenix.protocol.ProtocolLibrary;
-import com.comphenix.protocol.events.PacketContainer;
-import it.unimi.dsi.fastutil.ints.IntArrayList;
-import it.unimi.dsi.fastutil.ints.IntList;
+import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.protocol.entity.data.EntityData;
+import com.github.retrooper.packetevents.protocol.entity.data.EntityDataTypes;
+import com.github.retrooper.packetevents.protocol.player.Equipment;
+import com.github.retrooper.packetevents.protocol.player.EquipmentSlot;
+import com.github.retrooper.packetevents.util.Vector3d;
+import com.github.retrooper.packetevents.wrapper.PacketWrapper;
+import com.github.retrooper.packetevents.wrapper.play.server.*;
+import com.google.common.primitives.Ints;
+import io.github.retrooper.packetevents.util.SpigotConversionUtil;
 import me.lojosho.hibiscuscommons.nms.NMSHandlers;
 import me.lojosho.hibiscuscommons.util.MessagesUtil;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Location;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.Player;
-import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.entity.*;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 public class PacketManager {
+    private final static int POSITION_INTERPOLATION_DURATION = 2;
 
     public static void sendEntitySpawnPacket(
             final @NotNull Location location,
@@ -29,19 +33,45 @@ public class PacketManager {
             final UUID uuid,
             final @NotNull List<Player> sendTo
     ) {
-        NMSHandlers.getHandler().getPacketHandler().sendSpawnEntityPacket(entityId, uuid, entityType, location, sendTo);
+        WrapperPlayServerSpawnEntity packet = new WrapperPlayServerSpawnEntity(
+            entityId,
+            uuid,
+            SpigotConversionUtil.fromBukkitEntityType(entityType),
+            SpigotConversionUtil.fromBukkitLocation(location),
+            0,
+            0,
+            new Vector3d()
+        );
+
+        for (Player p : sendTo) sendPacket(p, packet);
     }
 
     public static void gamemodeChangePacket(
             Player player,
             int gamemode
     ) {
-        PacketContainer packet = new PacketContainer(PacketType.Play.Server.GAME_STATE_CHANGE);
-        packet.getGameStateIDs().write(0, 3);
-        // Tells what event this is. This is a change gamemode event.
-        packet.getFloat().write(0, (float) gamemode);
+        WrapperPlayServerChangeGameState packet = new WrapperPlayServerChangeGameState(
+            3,
+            gamemode
+        );
+
         sendPacket(player, packet);
         MessagesUtil.sendDebugMessages("Gamemode Change sent to " + player + " to be " + gamemode);
+    }
+
+    public static void ridingMountPacket(
+        int mountId,
+        int[] passengerIds,
+        @NotNull List<Player> sendTo
+    ) {
+        WrapperPlayServerSetPassengers packet = new WrapperPlayServerSetPassengers(
+            mountId,
+            passengerIds
+        );
+
+        for (final Player p : sendTo) {
+            sendPacket(p, packet);
+        }
     }
 
     public static void ridingMountPacket(
@@ -49,7 +79,7 @@ public class PacketManager {
             int passengerId,
             @NotNull List<Player> sendTo
     ) {
-        NMSHandlers.getHandler().getPacketHandler().sendMountPacket(mountId, new int[]{passengerId}, sendTo);
+        ridingMountPacket(mountId, new int[]{passengerId}, sendTo);
     }
 
     public static void sendLookPacket(
@@ -57,9 +87,11 @@ public class PacketManager {
             @NotNull Location location,
             @NotNull List<Player> sendTo
     ) {
-        PacketContainer packet = new PacketContainer(PacketType.Play.Server.ENTITY_HEAD_ROTATION);
-        packet.getIntegers().write(0, entityId);
-        packet.getBytes().write(0, (byte) (location.getYaw() * 256.0F / 360.0F));
+        WrapperPlayServerEntityHeadLook packet = new WrapperPlayServerEntityHeadLook(
+            entityId,
+            (location.getYaw() * 256.0F / 360.0F)
+        );
+
         for (Player p : sendTo) sendPacket(p, packet);
     }
 
@@ -72,13 +104,14 @@ public class PacketManager {
         float ROTATION_FACTOR = 256.0F / 360.0F;
         float yaw = location.getYaw() * ROTATION_FACTOR;
         float pitch = location.getPitch() * ROTATION_FACTOR;
-        PacketContainer packet = new PacketContainer(PacketType.Play.Server.ENTITY_LOOK);
-        packet.getIntegers().write(0, entityId);
-        packet.getBytes().write(0, (byte) yaw);
-        packet.getBytes().write(1, (byte) pitch);
 
-        //Bukkit.getLogger().info("DEBUG: Yaw: " + (location.getYaw() * ROTATION_FACTOR) + " | Original Yaw: " + location.getYaw());
-        packet.getBooleans().write(0, onGround);
+        WrapperPlayServerEntityRotation packet = new WrapperPlayServerEntityRotation(
+            entityId,
+            yaw,
+            pitch,
+            onGround
+        );
+
         for (Player p : sendTo) sendPacket(p, packet);
     }
 
@@ -91,7 +124,14 @@ public class PacketManager {
         float ROTATION_FACTOR = 256.0F / 360.0F;
         float yaw2 = yaw * ROTATION_FACTOR;
 
-        NMSHandlers.getHandler().getPacketHandler().sendRotationPacket(entityId, yaw2, onGround, sendTo);
+        WrapperPlayServerEntityRotation packet = new WrapperPlayServerEntityRotation(
+            entityId,
+            yaw2,
+            0,
+            onGround
+        );
+
+        for (Player p : sendTo) sendPacket(p, packet);
     }
 
     public static void sendRidingPacket(
@@ -107,7 +147,14 @@ public class PacketManager {
             final int[] passengerIds,
             final @NotNull List<Player> sendTo
     ) {
-        NMSHandlers.getHandler().getPacketHandler().sendMountPacket(mountId, passengerIds, sendTo);
+        WrapperPlayServerSetPassengers packet = new WrapperPlayServerSetPassengers(
+            mountId,
+            passengerIds
+        );
+
+        for (final Player p : sendTo) {
+            sendPacket(p, packet);
+        }
     }
 
     /**
@@ -116,7 +163,11 @@ public class PacketManager {
      * @param sendTo The players the packet should be sent to
      */
     public static void sendEntityDestroyPacket(final int entityId, @NotNull List<Player> sendTo) {
-        NMSHandlers.getHandler().getPacketHandler().sendEntityDestroyPacket(IntList.of(entityId), sendTo);
+        WrapperPlayServerDestroyEntities packet = new WrapperPlayServerDestroyEntities(
+            entityId
+        );
+
+        for (final Player p : sendTo) sendPacket(p, packet);
     }
 
     /**
@@ -124,7 +175,11 @@ public class PacketManager {
      * @param sendTo The players the packet should be sent to
      */
     public static void sendEntityDestroyPacket(final List<Integer> ids, @NotNull List<Player> sendTo) {
-        NMSHandlers.getHandler().getPacketHandler().sendEntityDestroyPacket(new IntArrayList(ids), sendTo);
+        WrapperPlayServerDestroyEntities packet = new WrapperPlayServerDestroyEntities(
+            Ints.toArray(ids)
+        );
+
+        for (final Player p : sendTo) sendPacket(p, packet);
     }
 
     /**
@@ -133,7 +188,9 @@ public class PacketManager {
      * @param sendTo The players that will be sent this packet
      */
     public static void sendCameraPacket(final int entityId, @NotNull List<Player> sendTo) {
-        NMSHandlers.getHandler().getPacketHandler().sendCameraPacket(entityId, sendTo);
+        WrapperPlayServerCamera packet = new WrapperPlayServerCamera(entityId);
+
+        for (final Player p : sendTo) sendPacket(p, packet);
         MessagesUtil.sendDebugMessages(sendTo + " | " + entityId + " has had a camera packet on them!");
     }
 
@@ -142,7 +199,15 @@ public class PacketManager {
             final int entityId,
             final @NotNull List<Player> sendTo
     ) {
-        NMSHandlers.getHandler().getPacketHandler().sendLeashPacket(leashedEntity, entityId, sendTo);
+        WrapperPlayServerAttachEntity packet = new WrapperPlayServerAttachEntity(
+            leashedEntity,
+             entityId,
+            true
+        );
+
+        for (final Player p : sendTo) {
+            sendPacket(p, packet);
+        }
     }
 
     /**
@@ -158,15 +223,16 @@ public class PacketManager {
             boolean onGround,
             final @NotNull List<Player> sendTo
     ) {
-        double x = location.getX();
-        double y = location.getY();
-        double z = location.getZ();
-        float yaw = location.getYaw();
-        float pitch = location.getPitch();
-        NMSHandlers.getHandler().getPacketHandler().sendTeleportPacket(entityId, x, y, z, yaw, pitch, onGround, sendTo);
+        WrapperPlayServerEntityTeleport packet = new WrapperPlayServerEntityTeleport(
+            entityId,
+            SpigotConversionUtil.fromBukkitLocation(location),
+            onGround
+        );
+
+        for (final Player p : sendTo) {
+            sendPacket(p, packet);
+        }
     }
-
-
 
     @NotNull
     public static List<Player> getViewers(Location location, int distance) {
@@ -183,7 +249,14 @@ public class PacketManager {
             Player player,
             int slot
     ) {
-        NMSHandlers.getHandler().getPacketHandler().sendSlotUpdate(player, slot);
+        WrapperPlayServerSetSlot packet = new WrapperPlayServerSetSlot(
+            NMSHandlers.getHandler().getUtilHandler().getInventoryId(player),
+            NMSHandlers.getHandler().getUtilHandler().incrementInventoryStateId(player),
+            36, // TODO: Verify accuracy
+            SpigotConversionUtil.fromBukkitItemStack(player.getInventory().getItem(slot))
+        );
+
+        sendPacket(player, packet);
     }
 
     public static void equipmentSlotUpdate(
@@ -192,15 +265,109 @@ public class PacketManager {
             ItemStack item,
             List<Player> sendTo
     ) {
-        NMSHandlers.getHandler().getPacketHandler().sendEquipmentSlotUpdate(entityId, slot, item, sendTo);
+        WrapperPlayServerEntityEquipment packet = new WrapperPlayServerEntityEquipment(
+            entityId,
+            Collections.singletonList(new Equipment(
+                PEConverter.convertEquipmentSlot(slot),
+                SpigotConversionUtil.fromBukkitItemStack(item)
+            ))
+        );
+
+        for (final Player p : sendTo) {
+            sendPacket(p, packet);
+        }
     }
 
     public static void equipmentSlotUpdate(
             int entityId,
-            HashMap<EquipmentSlot, ItemStack> equipment,
+            HashMap<org.bukkit.inventory.EquipmentSlot, ItemStack> equipmentMap,
             List<Player> sendTo
     ) {
-        NMSHandlers.getHandler().getPacketHandler().sendEquipmentSlotUpdate(entityId, equipment, sendTo);
+        WrapperPlayServerEntityEquipment packet = new WrapperPlayServerEntityEquipment(
+            entityId,
+            equipmentMap.entrySet().stream()
+                .map(entry -> new Equipment(
+                    PEConverter.convertEquipmentSlot(entry.getKey()),
+                    SpigotConversionUtil.fromBukkitItemStack(entry.getValue())
+                ))
+                .toList()
+        );
+
+        for (final Player p : sendTo) {
+            sendPacket(p, packet);
+        }
+    }
+
+    // TODO: Test
+    public static void sendScoreboardHideNamePacket(Player player, String name) {
+        WrapperPlayServerTeams.ScoreBoardTeamInfo teamInfo = new WrapperPlayServerTeams.ScoreBoardTeamInfo(
+            Component.empty(),
+            null,
+            null,
+            WrapperPlayServerTeams.NameTagVisibility.NEVER,
+            WrapperPlayServerTeams.CollisionRule.ALWAYS,
+            NamedTextColor.WHITE,
+            WrapperPlayServerTeams.OptionData.ALL
+        );
+
+        //Remove the Team (i assume so if it exists)
+        WrapperPlayServerTeams removeTeamPacket = new WrapperPlayServerTeams(
+            name,
+            WrapperPlayServerTeams.TeamMode.REMOVE,
+            (WrapperPlayServerTeams.ScoreBoardTeamInfo) null,
+            Collections.emptyList()
+        );
+        sendPacket(player, removeTeamPacket);
+
+        //Creating the Team
+        WrapperPlayServerTeams createTeamPacket = new WrapperPlayServerTeams(
+            name,
+            WrapperPlayServerTeams.TeamMode.CREATE,
+            teamInfo,
+            Collections.emptyList()
+        );
+        sendPacket(player, createTeamPacket);
+
+        //Adding players to the team (You have to use the NPC's name, and add it to a list)
+        WrapperPlayServerTeams addTeamPlayersPacket = new WrapperPlayServerTeams(
+            name,
+            WrapperPlayServerTeams.TeamMode.ADD_ENTITIES,
+            teamInfo,
+            Collections.singletonList(name)
+        );
+        sendPacket(player, addTeamPlayersPacket);
+    }
+
+    public static void sendItemDisplayMetadata(int entityId,
+                                        Vector3f translation,
+                                        Vector3f scale,
+                                        Quaternionf rotationLeft,
+                                        Quaternionf rotationRight,
+                                        Display.Billboard billboard,
+                                        int blockLight, int skyLight, float viewRange, float width, float height,
+                                        ItemDisplay.ItemDisplayTransform transform, ItemStack itemStack,
+                                        List<Player> sendTo) {
+        WrapperPlayServerEntityMetadata packet = new WrapperPlayServerEntityMetadata(
+            entityId,
+            List.of(
+                new EntityData(10, EntityDataTypes.INT, POSITION_INTERPOLATION_DURATION),
+                new EntityData(11, EntityDataTypes.VECTOR3F, translation),
+                new EntityData(12, EntityDataTypes.VECTOR3F, scale),
+                new EntityData(13, EntityDataTypes.QUATERNION, rotationLeft),
+                new EntityData(14, EntityDataTypes.QUATERNION, rotationRight),
+                new EntityData(15, EntityDataTypes.BYTE, (byte) billboard.ordinal()),
+                new EntityData(16, EntityDataTypes.INT, (blockLight << 4 | skyLight << 20)),
+                new EntityData(17, EntityDataTypes.FLOAT, viewRange),
+                new EntityData(20, EntityDataTypes.FLOAT, width),
+                new EntityData(21, EntityDataTypes.FLOAT, height),
+                new EntityData(23, EntityDataTypes.ITEMSTACK, SpigotConversionUtil.fromBukkitItemStack(itemStack)),
+                new EntityData(24, EntityDataTypes.BYTE, (byte) transform.ordinal())
+            )
+        );
+
+        for (final Player p : sendTo) {
+            sendPacket(p, packet);
+        }
     }
 
     private static List<Player> getNearbyPlayers(Location location, int distance) {
@@ -213,9 +380,8 @@ public class PacketManager {
         return players;
     }
 
-    public static void sendPacket(Player player, PacketContainer packet) {
+    public static void sendPacket(Player player, PacketWrapper<?> packet) {
         if (player == null) return;
-        ProtocolLibrary.getProtocolManager().sendServerPacket(player, packet, null,false);
+        PacketEvents.getAPI().getPlayerManager().sendPacket(player, packet);
     }
-
 }

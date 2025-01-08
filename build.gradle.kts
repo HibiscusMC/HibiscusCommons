@@ -32,7 +32,7 @@ allprojects {
         // Nexo
         maven("https://repo.nexomc.com/snapshots/")
 
-        // Geary & Backup ProtocolLib repo
+        // Geary
         maven("https://repo.mineinabyss.com/releases/")
         maven("https://repo.mineinabyss.com/snapshots/")
 
@@ -48,14 +48,14 @@ allprojects {
         // MMOItems
         maven("https://nexus.phoenixdevt.fr/repository/maven-public/")
 
+        // PacketEvents
+        maven("https://repo.codemc.io/repository/maven-releases/")
+
         // Eco-Suite/Auxilor Repo
         maven("https://repo.auxilor.io/repository/maven-public/")
 
         // PlaceholderAPI
         maven("https://repo.extendedclip.com/content/repositories/placeholderapi/")
-
-        // ProtocolLib
-        maven("https://repo.dmulloy2.net/repository/public/")
 
         // Oraxen
         maven("https://repo.oraxen.com/releases")
@@ -90,13 +90,13 @@ allprojects {
         compileOnly("com.github.LeonMangler:SuperVanish:6.2.17")
         compileOnly("net.Indyuce:MMOItems-API:6.9.4-SNAPSHOT")
         compileOnly("com.willfp:eco:6.67.2")
+        compileOnly("com.github.retrooper:packetevents-spigot:2.4.0")
         compileOnly("me.clip:placeholderapi:2.11.6")
         compileOnly("LibsDisguises:LibsDisguises:10.0.44") {
             exclude("org.spigotmc", "spigot")
         }
         compileOnly("com.github.Xiao-MoMi:Custom-Fishing:2.2.26")
         compileOnly("com.ticxo.modelengine:ModelEngine:R4.0.2")
-        compileOnly("com.comphenix.protocol:ProtocolLib:5.3.0")
         compileOnly("org.joml:joml:1.10.5")
 
         // Lombok <3
@@ -141,7 +141,6 @@ tasks {
 
         downloadPlugins {
             hangar("PlaceholderAPI", "2.11.6")
-            url("https://ci.dmulloy2.net/job/ProtocolLib/lastSuccessfulBuild/artifact/build/libs/ProtocolLib.jar")
             url("https://download.luckperms.net/1567/bukkit/loader/LuckPerms-Bukkit-5.4.150.jar")
         }
     }
@@ -191,7 +190,7 @@ bukkit {
     main = "me.lojosho.hibiscuscommons.HibiscusCommonsPlugin"
     apiVersion = "1.20"
     authors = listOf("LoJoSho")
-    depend = listOf("ProtocolLib")
+    depend = listOf("packetevents")
     softDepend = listOf(
         "ModelEngine",
         "Oraxen",
