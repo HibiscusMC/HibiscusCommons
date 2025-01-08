@@ -63,7 +63,7 @@ public class NMSHandlers {
             version = packageVersion;
             try {
                 NMSUtils utilHandler = (NMSUtils) Class.forName("me.lojosho.hibiscuscommons.nms." + packageVersion + ".NMSUtils").getConstructor().newInstance();
-                NMSPackets packetHandler = (NMSPackets) Class.forName("me.lojosho.hibiscuscommons.nms." + packageVersion + ".NMSPackets").getConstructor().newInstance();
+                NMSPackets packetHandler = new NMSPackets();
                 handler = new NMSHandler(utilHandler, packetHandler);
                 return;
             } catch (ClassNotFoundException | InvocationTargetException | InstantiationException |
