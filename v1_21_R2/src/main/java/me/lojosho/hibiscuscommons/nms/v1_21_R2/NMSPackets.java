@@ -53,6 +53,8 @@ import java.util.*;
 
 public class NMSPackets extends NMSCommon implements me.lojosho.hibiscuscommons.nms.NMSPackets {
 
+    private static ServerLevel level = MinecraftServer.getServer().overworld();
+    private static Entity fakeNmsEntity = new ArmorStand(net.minecraft.world.entity.EntityType.ARMOR_STAND, level);
     static Constructor<ClientboundSetPassengersPacket> passengerConstructor;
     static {
         try {
@@ -74,12 +76,10 @@ public class NMSPackets extends NMSCommon implements me.lojosho.hibiscuscommons.
 
     @Override
     public void sendRotateHeadPacket(int entityId, Location location, List<Player> sendTo) {
-        ServerLevel level = MinecraftServer.getServer().overworld();
-        Entity entity = new ArmorStand(net.minecraft.world.entity.EntityType.ARMOR_STAND, level);
-        entity.setId(entityId);
+        fakeNmsEntity.setId(entityId);
         byte headRot = (byte) (location.getYaw() * 256.0F / 360.0F);
 
-        ClientboundRotateHeadPacket packet = new ClientboundRotateHeadPacket(entity, headRot);
+        ClientboundRotateHeadPacket packet = new ClientboundRotateHeadPacket(fakeNmsEntity, headRot);
         for (Player p : sendTo) sendPacket(p, packet);
     }
 
@@ -230,9 +230,9 @@ public class NMSPackets extends NMSCommon implements me.lojosho.hibiscuscommons.
 
     @Override
     public void sendCameraPacket(int entityId, List<Player> sendTo) {
-        // Fake entity just to avoid reflection
-        Entity entity = new ArmorStand(net.minecraft.world.entity.EntityType.ARMOR_STAND, MinecraftServer.getServer().overworld());
-        ClientboundSetCameraPacket packet = new ClientboundSetCameraPacket(entity);
+        fakeNmsEntity.setId(entityId);
+
+        ClientboundSetCameraPacket packet = new ClientboundSetCameraPacket(fakeNmsEntity);
         for (Player p : sendTo) sendPacket(p, packet);
     }
 
