@@ -1,5 +1,6 @@
 package me.lojosho.hibiscuscommons.nms;
 
+import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.ints.IntList;
 import net.kyori.adventure.text.Component;
 import org.bukkit.GameMode;
@@ -10,20 +11,33 @@ import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.NotNull;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 public interface NMSPackets {
 
     static int POSITION_INTERPOLATION_DURATION = 2;
+    static int SHARED_ENTITY_METADATA = 0;
+
+    void sendSharedEntityData(int entityId, Map<Integer, Number> dataValues, List<Player> sendTo);
+
+    void sendFakePlayerInfoPacket(final Player skinnedPlayer, final int entityId, final UUID uuid, final String npcName, final List<Player> sendTo);
+
+    void sendPlayerInfoRemovePacket(final UUID uuid, final List<Player> sendTo);
+
+    void sendMovePacket(final int entityId, final @NotNull Location from, final @NotNull Location to, final boolean onGround, @NotNull List<Player> sendTo);
 
     void sendGamemodeChange(Player player, GameMode gameMode);
 
     void sendRotateHeadPacket(int entityId, Location location, List<Player> sendTo);
+
+    void sendRotationPacket(int entityId, float yaw, float pitch, boolean onGround, List<Player> sendTo);
 
     void sendRotationPacket(int entityId, Location location, boolean onGround, List<Player> sendTo);
 
