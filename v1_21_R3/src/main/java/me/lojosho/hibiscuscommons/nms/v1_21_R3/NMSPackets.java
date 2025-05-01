@@ -1,5 +1,6 @@
 package me.lojosho.hibiscuscommons.nms.v1_21_R3;
 
+import com.google.common.collect.ImmutableList;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.mojang.datafixers.util.Pair;
@@ -58,16 +59,6 @@ public class NMSPackets extends NMSCommon implements me.lojosho.hibiscuscommons.
 
     private static ServerLevel level = MinecraftServer.getServer().overworld();
     private static Entity fakeNmsEntity = new ArmorStand(net.minecraft.world.entity.EntityType.ARMOR_STAND, level);
-    static Constructor<ClientboundSetPassengersPacket> passengerConstructor;
-
-    static {
-        try {
-            passengerConstructor = ClientboundSetPassengersPacket.class.getDeclaredConstructor(FriendlyByteBuf.class);
-            passengerConstructor.setAccessible(true);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
 
     @Override
     public void sendGamemodeChange(Player player, GameMode gameMode) {
@@ -189,15 +180,15 @@ public class NMSPackets extends NMSCommon implements me.lojosho.hibiscuscommons.
 
     @Override
     public void sendMountPacket(int mountId, int[] passengerIds, List<Player> sendTo) {
-        FriendlyByteBuf byteBuf = new FriendlyByteBuf(Unpooled.buffer());
-        byteBuf.writeVarInt(mountId);
-        byteBuf.writeVarIntArray(passengerIds);
-        try {
-            ClientboundSetPassengersPacket packet = passengerConstructor.newInstance(byteBuf);
-            for (Player p : sendTo) sendPacket(p, packet);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        List<Entity> passengers = Arrays.stream(passengerIds).mapToObj(id -> {
+            Entity passenger = new ArmorStand(net.minecraft.world.entity.EntityType.ARMOR_STAND, level);
+            passenger.setId(id);
+            return passenger;
+        }).toList();
+        fakeNmsEntity.passengers = ImmutableList.copyOf(passengers);
+        ClientboundSetPassengersPacket packet = new ClientboundSetPassengersPacket(fakeNmsEntity);
+        fakeNmsEntity.passengers = ImmutableList.of();
+        for (Player p : sendTo) sendPacket(p, packet);
     }
 
     @Override
