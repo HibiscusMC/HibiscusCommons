@@ -9,8 +9,12 @@ import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.*;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.decoration.ArmorStand;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.scores.PlayerTeam;
@@ -37,38 +41,10 @@ import java.util.*;
 public class NMSPackets extends NMSCommon implements me.lojosho.hibiscuscommons.nms.NMSPackets {
 
     static Constructor<ClientboundSetPassengersPacket> passengerConstructor;
-    static Constructor<ClientboundSetEntityLinkPacket> linkConstructor;
-    static Constructor<ClientboundTeleportEntityPacket> teleportConstructor;
-    static Constructor<ClientboundSetCameraPacket> cameraConstructor;
-    static Constructor<ClientboundRotateHeadPacket> rotateHeadConstructor;
     static {
         try {
             passengerConstructor = ClientboundSetPassengersPacket.class.getDeclaredConstructor(FriendlyByteBuf.class);
             passengerConstructor.setAccessible(true);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        try {
-            linkConstructor = ClientboundSetEntityLinkPacket.class.getDeclaredConstructor(FriendlyByteBuf.class);
-            linkConstructor.setAccessible(true);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        try {
-            teleportConstructor = ClientboundTeleportEntityPacket.class.getDeclaredConstructor(FriendlyByteBuf.class);
-            teleportConstructor.setAccessible(true);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        try {
-            cameraConstructor = ClientboundSetCameraPacket.class.getDeclaredConstructor(FriendlyByteBuf.class);
-            cameraConstructor.setAccessible(true);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        try {
-            rotateHeadConstructor = ClientboundRotateHeadPacket.class.getDeclaredConstructor(FriendlyByteBuf.class);
-            rotateHeadConstructor.setAccessible(true);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -85,16 +61,13 @@ public class NMSPackets extends NMSCommon implements me.lojosho.hibiscuscommons.
 
     @Override
     public void sendRotateHeadPacket(int entityId, Location location, List<Player> sendTo) {
+        ServerLevel level = MinecraftServer.getServer().overworld();
+        Entity entity = new ArmorStand(net.minecraft.world.entity.EntityType.ARMOR_STAND, level);
+        entity.setId(entityId);
         byte headRot = (byte) (location.getYaw() * 256.0F / 360.0F);
-        FriendlyByteBuf byteBuf = new FriendlyByteBuf(Unpooled.buffer());
-        byteBuf.writeVarInt(entityId);
-        byteBuf.writeByte(headRot);
-        try {
-            ClientboundRotateHeadPacket packet = rotateHeadConstructor.newInstance(byteBuf);
-            for (Player p : sendTo) sendPacket(p, packet);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+
+        ClientboundRotateHeadPacket packet = new ClientboundRotateHeadPacket(entity, headRot);
+        for (Player p : sendTo) sendPacket(p, packet);
     }
 
     @Override
@@ -212,15 +185,15 @@ public class NMSPackets extends NMSCommon implements me.lojosho.hibiscuscommons.
 
     @Override
     public void sendLeashPacket(int leashEntity, int entityId, List<Player> sendTo) {
-        FriendlyByteBuf byteBuf = new FriendlyByteBuf(Unpooled.buffer());
-        byteBuf.writeInt(leashEntity);
-        byteBuf.writeInt(entityId);
-        try {
-            ClientboundSetEntityLinkPacket packet = linkConstructor.newInstance(byteBuf);
-            for (Player p : sendTo) sendPacket(p, packet);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        // Fake entities just to avoid reflection
+        ServerLevel level = MinecraftServer.getServer().overworld();
+        Entity entity1 = new ArmorStand(net.minecraft.world.entity.EntityType.ARMOR_STAND, level);
+        Entity entity2 = new ArmorStand(net.minecraft.world.entity.EntityType.ARMOR_STAND, level);
+        entity1.setId(leashEntity);
+        entity2.setId(entityId);
+
+        ClientboundSetEntityLinkPacket packet = new ClientboundSetEntityLinkPacket(entity1, entity2);
+        for (Player p : sendTo) sendPacket(p, packet);
     }
 
     @Override
@@ -234,33 +207,22 @@ public class NMSPackets extends NMSCommon implements me.lojosho.hibiscuscommons.
             boolean onGround,
             List<Player> sendTo
     ) {
-        FriendlyByteBuf byteBuf = new FriendlyByteBuf(Unpooled.buffer());
-        byteBuf.writeVarInt(entityId);
-        byteBuf.writeDouble(x);
-        byteBuf.writeDouble(y);
-        byteBuf.writeDouble(z);
-        byteBuf.writeByte((byte) (yaw * 256.0F / 360.0F));
-        byteBuf.writeByte((byte) (pitch * 256.0F / 360.0F));
-        byteBuf.writeBoolean(onGround);
+        ServerLevel level = MinecraftServer.getServer().overworld();
+        Entity entity = new ArmorStand(level, x, y, z);
+        entity.setId(entityId);
+        entity.setRot((yaw * 256.0F / 360.0F), (pitch * 256.0F / 360.0F));
+        entity.setOnGround(onGround);
 
-        try {
-            ClientboundTeleportEntityPacket packet = teleportConstructor.newInstance(byteBuf);
-            for (Player p : sendTo) sendPacket(p, packet);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        ClientboundTeleportEntityPacket packet = new ClientboundTeleportEntityPacket(entity);
+        for (Player p : sendTo) sendPacket(p, packet);
     }
 
     @Override
     public void sendCameraPacket(int entityId, List<Player> sendTo) {
-        FriendlyByteBuf byteBuf = new FriendlyByteBuf(Unpooled.buffer());
-        byteBuf.writeVarInt(entityId);
-        try {
-            ClientboundSetCameraPacket packet = cameraConstructor.newInstance(byteBuf);
-            for (Player p : sendTo) sendPacket(p, packet);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        // Fake entity just to avoid reflection
+        Entity entity = new ArmorStand(net.minecraft.world.entity.EntityType.ARMOR_STAND, MinecraftServer.getServer().overworld());
+        ClientboundSetCameraPacket packet = new ClientboundSetCameraPacket(entity);
+        for (Player p : sendTo) sendPacket(p, packet);
     }
 
 
