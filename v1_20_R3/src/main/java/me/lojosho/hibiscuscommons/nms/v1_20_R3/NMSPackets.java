@@ -1,23 +1,14 @@
 package me.lojosho.hibiscuscommons.nms.v1_20_R3;
 
-import com.google.gson.JsonDeserializationContext;
-import com.google.gson.JsonObject;
 import com.mojang.datafixers.util.Pair;
-import com.mojang.serialization.JsonOps;
 import io.netty.buffer.Unpooled;
 import it.unimi.dsi.fastutil.ints.IntList;
-import me.lojosho.hibiscuscommons.HibiscusCommonsPlugin;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
-import net.minecraft.advancements.Advancement;
-import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.*;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Inventory;
@@ -25,6 +16,7 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.scores.PlayerTeam;
 import net.minecraft.world.scores.Team;
 import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.craftbukkit.v1_20_R3.CraftEquipmentSlot;
 import org.bukkit.craftbukkit.v1_20_R3.entity.CraftEntityType;
@@ -36,12 +28,10 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 import java.lang.reflect.Constructor;
-import java.nio.ByteBuffer;
 import java.util.*;
 
 public class NMSPackets extends NMSCommon implements me.lojosho.hibiscuscommons.nms.NMSPackets {
@@ -50,7 +40,7 @@ public class NMSPackets extends NMSCommon implements me.lojosho.hibiscuscommons.
     static Constructor<ClientboundSetEntityLinkPacket> linkConstructor;
     static Constructor<ClientboundTeleportEntityPacket> teleportConstructor;
     static Constructor<ClientboundSetCameraPacket> cameraConstructor;
-    static Constructor<ClientboundPlayerLookAtPacket> lookAtConstructor;
+    static Constructor<ClientboundRotateHeadPacket> rotateHeadConstructor;
     static {
         try {
             passengerConstructor = ClientboundSetPassengersPacket.class.getDeclaredConstructor(FriendlyByteBuf.class);
@@ -77,11 +67,43 @@ public class NMSPackets extends NMSCommon implements me.lojosho.hibiscuscommons.
             e.printStackTrace();
         }
         try {
-            lookAtConstructor = ClientboundPlayerLookAtPacket.class.getDeclaredConstructor(FriendlyByteBuf.class);
-            lookAtConstructor.setAccessible(true);
+            rotateHeadConstructor = ClientboundRotateHeadPacket.class.getDeclaredConstructor(FriendlyByteBuf.class);
+            rotateHeadConstructor.setAccessible(true);
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public void sendGamemodeChange(Player player, GameMode gameMode) {
+        ClientboundGameEventPacket.Type type = ClientboundGameEventPacket.CHANGE_GAME_MODE;
+        float param = gameMode.ordinal();
+
+        ClientboundGameEventPacket packet = new ClientboundGameEventPacket(type, param);
+        sendPacket(player, packet);
+    }
+
+    @Override
+    public void sendRotateHeadPacket(int entityId, Location location, List<Player> sendTo) {
+        byte headRot = (byte) (location.getYaw() * 256.0F / 360.0F);
+        FriendlyByteBuf byteBuf = new FriendlyByteBuf(Unpooled.buffer());
+        byteBuf.writeVarInt(entityId);
+        byteBuf.writeByte(headRot);
+        try {
+            ClientboundRotateHeadPacket packet = rotateHeadConstructor.newInstance(byteBuf);
+            for (Player p : sendTo) sendPacket(p, packet);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void sendRotationPacket(int entityId, Location location, boolean onGround, List<Player> sendTo) {
+        float ROTATION_FACTOR = 256.0F / 360.0F;
+        byte yaw = (byte) (location.getYaw() * ROTATION_FACTOR);
+        byte pitch = (byte) (location.getPitch() * ROTATION_FACTOR);
+        ClientboundMoveEntityPacket.Rot packet = new ClientboundMoveEntityPacket.Rot(entityId, yaw, pitch, onGround);
+        for (Player p : sendTo) sendPacket(p, packet);
     }
 
     @Override
@@ -223,20 +245,6 @@ public class NMSPackets extends NMSCommon implements me.lojosho.hibiscuscommons.
 
         try {
             ClientboundTeleportEntityPacket packet = teleportConstructor.newInstance(byteBuf);
-            for (Player p : sendTo) sendPacket(p, packet);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    @Override
-    public void sendRotationPacket(int entityId, float yaw, boolean onGround, List<Player> sendTo) {
-        FriendlyByteBuf byteBuf = new FriendlyByteBuf(Unpooled.buffer());
-        byteBuf.writeVarInt(entityId);
-        byteBuf.writeFloat(yaw);
-        byteBuf.writeBoolean(onGround);
-        try {
-            ClientboundPlayerLookAtPacket packet = lookAtConstructor.newInstance(byteBuf);
             for (Player p : sendTo) sendPacket(p, packet);
         } catch (Exception e) {
             e.printStackTrace();

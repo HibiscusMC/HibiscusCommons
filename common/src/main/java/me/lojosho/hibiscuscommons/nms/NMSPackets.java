@@ -2,6 +2,7 @@ package me.lojosho.hibiscuscommons.nms;
 
 import it.unimi.dsi.fastutil.ints.IntList;
 import net.kyori.adventure.text.Component;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.entity.Display;
 import org.bukkit.entity.EntityType;
@@ -20,10 +21,13 @@ public interface NMSPackets {
 
     static int POSITION_INTERPOLATION_DURATION = 2;
 
-    void sendSlotUpdate(
-            Player player,
-            int slot
-    );
+    void sendGamemodeChange(Player player, GameMode gameMode);
+
+    void sendRotateHeadPacket(int entityId, Location location, List<Player> sendTo);
+
+    void sendRotationPacket(int entityId, Location location, boolean onGround, List<Player> sendTo);
+
+    void sendSlotUpdate(Player player, int slot);
 
     void sendEquipmentSlotUpdate(
             int entityId,
@@ -57,8 +61,6 @@ public interface NMSPackets {
             boolean onGround,
             List<Player> sendTo
     );
-
-    void sendRotationPacket(int entityId, float yaw, boolean onGround, List<Player> sendTo);
 
     void sendCameraPacket(int entityId, List<Player> sendTo);
 

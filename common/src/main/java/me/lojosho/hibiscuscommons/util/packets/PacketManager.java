@@ -1,12 +1,10 @@
 package me.lojosho.hibiscuscommons.util.packets;
 
-import com.comphenix.protocol.PacketType;
-import com.comphenix.protocol.ProtocolLibrary;
-import com.comphenix.protocol.events.PacketContainer;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import me.lojosho.hibiscuscommons.nms.NMSHandlers;
 import me.lojosho.hibiscuscommons.util.MessagesUtil;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
@@ -34,14 +32,9 @@ public class PacketManager {
 
     public static void gamemodeChangePacket(
             Player player,
-            int gamemode
+            GameMode gamemode
     ) {
-        PacketContainer packet = new PacketContainer(PacketType.Play.Server.GAME_STATE_CHANGE);
-        packet.getGameStateIDs().write(0, 3);
-        // Tells what event this is. This is a change gamemode event.
-        packet.getFloat().write(0, (float) gamemode);
-        sendPacket(player, packet);
-        MessagesUtil.sendDebugMessages("Gamemode Change sent to " + player + " to be " + gamemode);
+        NMSHandlers.getHandler().getPacketHandler().sendGamemodeChange(player, gamemode);
     }
 
     public static void ridingMountPacket(
@@ -52,15 +45,12 @@ public class PacketManager {
         NMSHandlers.getHandler().getPacketHandler().sendMountPacket(mountId, new int[]{passengerId}, sendTo);
     }
 
-    public static void sendLookPacket(
+    public static void sendRotateHeadPacket(
             int entityId,
             @NotNull Location location,
             @NotNull List<Player> sendTo
     ) {
-        PacketContainer packet = new PacketContainer(PacketType.Play.Server.ENTITY_HEAD_ROTATION);
-        packet.getIntegers().write(0, entityId);
-        packet.getBytes().write(0, (byte) (location.getYaw() * 256.0F / 360.0F));
-        for (Player p : sendTo) sendPacket(p, packet);
+        NMSHandlers.getHandler().getPacketHandler().sendRotateHeadPacket(entityId, location, sendTo);
     }
 
     public static void sendRotationPacket(
@@ -69,29 +59,7 @@ public class PacketManager {
             boolean onGround,
             @NotNull List<Player> sendTo
     ) {
-        float ROTATION_FACTOR = 256.0F / 360.0F;
-        float yaw = location.getYaw() * ROTATION_FACTOR;
-        float pitch = location.getPitch() * ROTATION_FACTOR;
-        PacketContainer packet = new PacketContainer(PacketType.Play.Server.ENTITY_LOOK);
-        packet.getIntegers().write(0, entityId);
-        packet.getBytes().write(0, (byte) yaw);
-        packet.getBytes().write(1, (byte) pitch);
-
-        //Bukkit.getLogger().info("DEBUG: Yaw: " + (location.getYaw() * ROTATION_FACTOR) + " | Original Yaw: " + location.getYaw());
-        packet.getBooleans().write(0, onGround);
-        for (Player p : sendTo) sendPacket(p, packet);
-    }
-
-    public static void sendRotationPacket(
-            int entityId,
-            int yaw,
-            boolean onGround,
-            @NotNull List<Player> sendTo
-    ) {
-        float ROTATION_FACTOR = 256.0F / 360.0F;
-        float yaw2 = yaw * ROTATION_FACTOR;
-
-        NMSHandlers.getHandler().getPacketHandler().sendRotationPacket(entityId, yaw2, onGround, sendTo);
+        NMSHandlers.getHandler().getPacketHandler().sendRotationPacket(entityId, location, onGround, sendTo);
     }
 
     public static void sendRidingPacket(
@@ -211,11 +179,6 @@ public class PacketManager {
             }
         }
         return players;
-    }
-
-    public static void sendPacket(Player player, PacketContainer packet) {
-        if (player == null) return;
-        ProtocolLibrary.getProtocolManager().sendServerPacket(player, packet, null,false);
     }
 
 }

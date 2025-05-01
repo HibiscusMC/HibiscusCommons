@@ -28,8 +28,10 @@ import net.minecraft.world.scores.PlayerTeam;
 import net.minecraft.world.scores.Team;
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.craftbukkit.CraftEquipmentSlot;
+import org.bukkit.craftbukkit.entity.CraftEntity;
 import org.bukkit.craftbukkit.entity.CraftEntityType;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.craftbukkit.inventory.CraftItemStack;
@@ -54,7 +56,7 @@ public class NMSPackets extends NMSCommon implements me.lojosho.hibiscuscommons.
     static Constructor<ClientboundSetPassengersPacket> passengerConstructor;
     static Constructor<ClientboundSetEntityLinkPacket> linkConstructor;
     static Constructor<ClientboundSetCameraPacket> cameraConstructor;
-    static Constructor<ClientboundPlayerLookAtPacket> lookAtConstructor;
+    static Constructor<ClientboundRotateHeadPacket> rotateHeadConstructor;
 
     static {
         try {
@@ -76,11 +78,43 @@ public class NMSPackets extends NMSCommon implements me.lojosho.hibiscuscommons.
             e.printStackTrace();
         }
         try {
-            lookAtConstructor = ClientboundPlayerLookAtPacket.class.getDeclaredConstructor(FriendlyByteBuf.class);
-            lookAtConstructor.setAccessible(true);
+            rotateHeadConstructor = ClientboundRotateHeadPacket.class.getDeclaredConstructor(FriendlyByteBuf.class);
+            rotateHeadConstructor.setAccessible(true);
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public void sendGamemodeChange(Player player, GameMode gameMode) {
+        ClientboundGameEventPacket.Type type = ClientboundGameEventPacket.CHANGE_GAME_MODE;
+        float param = gameMode.ordinal();
+
+        ClientboundGameEventPacket packet = new ClientboundGameEventPacket(type, param);
+        sendPacket(player, packet);
+    }
+
+    @Override
+    public void sendRotateHeadPacket(int entityId, Location location, List<Player> sendTo) {
+        byte headRot = (byte) (location.getYaw() * 256.0F / 360.0F);
+        FriendlyByteBuf byteBuf = new FriendlyByteBuf(Unpooled.buffer());
+        byteBuf.writeVarInt(entityId);
+        byteBuf.writeByte(headRot);
+        try {
+            ClientboundRotateHeadPacket packet = rotateHeadConstructor.newInstance(byteBuf);
+            for (Player p : sendTo) sendPacket(p, packet);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void sendRotationPacket(int entityId, Location location, boolean onGround, List<Player> sendTo) {
+        float ROTATION_FACTOR = 256.0F / 360.0F;
+        byte yaw = (byte) (location.getYaw() * ROTATION_FACTOR);
+        byte pitch = (byte) (location.getPitch() * ROTATION_FACTOR);
+        ClientboundMoveEntityPacket.Rot packet = new ClientboundMoveEntityPacket.Rot(entityId, yaw, pitch, onGround);
+        for (Player p : sendTo) sendPacket(p, packet);
     }
 
     @Override
@@ -213,20 +247,6 @@ public class NMSPackets extends NMSCommon implements me.lojosho.hibiscuscommons.
     ) {
         try {
             ClientboundTeleportEntityPacket packet = ClientboundTeleportEntityPacket.teleport(entityId, new PositionMoveRotation(new Vec3(x, y, z), Vec3.ZERO, yaw, pitch), java.util.Set.of(), onGround);
-            for (Player p : sendTo) sendPacket(p, packet);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    @Override
-    public void sendRotationPacket(int entityId, float yaw, boolean onGround, List<Player> sendTo) {
-        FriendlyByteBuf byteBuf = new FriendlyByteBuf(Unpooled.buffer());
-        byteBuf.writeVarInt(entityId);
-        byteBuf.writeFloat(yaw);
-        byteBuf.writeBoolean(onGround);
-        try {
-            ClientboundPlayerLookAtPacket packet = lookAtConstructor.newInstance(byteBuf);
             for (Player p : sendTo) sendPacket(p, packet);
         } catch (Exception e) {
             e.printStackTrace();
