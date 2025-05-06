@@ -1,12 +1,12 @@
 package me.lojosho.hibiscuscommons.util;
 
-import com.comphenix.protocol.wrappers.WrappedGameProfile;
-import com.comphenix.protocol.wrappers.WrappedSignedProperty;
 import me.lojosho.hibiscuscommons.HibiscusCommonsPlugin;
 import me.lojosho.hibiscuscommons.nms.NMSHandlers;
 import org.bukkit.Color;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.profile.PlayerProfile;
+import org.bukkit.profile.PlayerTextures;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -21,14 +21,8 @@ public class ServerUtils {
     }
 
     @Nullable
-    public static WrappedSignedProperty getSkin(Player player) {
-        WrappedSignedProperty skinData = WrappedGameProfile.fromPlayer(player).getProperties()
-                .get("textures").stream().findAny().orElse(null);
-
-        if (skinData == null) {
-            return null;
-        }
-        return new WrappedSignedProperty("textures", skinData.getValue(), skinData.getSignature());
+    public static PlayerTextures getSkin(Player player) {
+        return player.getPlayerProfile().getTextures();
     }
 
     /**
