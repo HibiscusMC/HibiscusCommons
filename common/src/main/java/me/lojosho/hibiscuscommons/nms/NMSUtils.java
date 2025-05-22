@@ -2,7 +2,6 @@ package me.lojosho.hibiscuscommons.nms;
 
 import org.bukkit.Color;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 

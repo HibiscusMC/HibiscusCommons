@@ -1,30 +1,37 @@
 package me.lojosho.hibiscuscommons.nms.v1_21_R1;
 
+import com.google.common.collect.ImmutableList;
 import com.google.gson.JsonObject;
-import com.mojang.datafixers.kinds.Const;
+import com.mojang.authlib.GameProfile;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.JsonOps;
-import io.netty.buffer.Unpooled;
+import io.papermc.paper.adventure.PaperAdventure;
 import it.unimi.dsi.fastutil.ints.IntList;
 import me.lojosho.hibiscuscommons.HibiscusCommonsPlugin;
+import me.lojosho.hibiscuscommons.util.AdventureUtils;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.minecraft.advancements.Advancement;
 import net.minecraft.advancements.AdvancementHolder;
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.*;
+import net.minecraft.network.syncher.EntityDataSerializer;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.decoration.ArmorStand;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.level.GameType;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.scores.PlayerTeam;
 import net.minecraft.world.scores.Team;
 import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.craftbukkit.CraftEquipmentSlot;
 import org.bukkit.craftbukkit.entity.CraftEntityType;
@@ -37,61 +44,114 @@ import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.jetbrains.annotations.NotNull;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
-import java.lang.reflect.Constructor;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class NMSPackets extends NMSCommon implements me.lojosho.hibiscuscommons.nms.NMSPackets {
 
-    static Constructor<ClientboundSetPassengersPacket> passengerConstructor;
-    static Constructor<ClientboundSetEntityLinkPacket> linkConstructor;
-    static Constructor<ClientboundTeleportEntityPacket> teleportConstructor;
-    static Constructor<ClientboundSetCameraPacket> cameraConstructor;
-    static Constructor<ClientboundPlayerLookAtPacket> lookAtConstructor;
-    static Constructor<ClientboundRotateHeadPacket> rotationConstructor;
-    static Constructor<ClientboundAddEntityPacket> spawnConstructor;
+    private static ServerLevel level = MinecraftServer.getServer().overworld();
+    private static Entity fakeNmsEntity = new ArmorStand(net.minecraft.world.entity.EntityType.ARMOR_STAND, level);
 
-    static {
-        try {
-            passengerConstructor = ClientboundSetPassengersPacket.class.getDeclaredConstructor(FriendlyByteBuf.class);
-            passengerConstructor.setAccessible(true);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        try {
-            linkConstructor = ClientboundSetEntityLinkPacket.class.getDeclaredConstructor(FriendlyByteBuf.class);
-            linkConstructor.setAccessible(true);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        try {
-            teleportConstructor = ClientboundTeleportEntityPacket.class.getDeclaredConstructor(FriendlyByteBuf.class);
-            teleportConstructor.setAccessible(true);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        try {
-            cameraConstructor = ClientboundSetCameraPacket.class.getDeclaredConstructor(FriendlyByteBuf.class);
-            cameraConstructor.setAccessible(true);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        try {
-            lookAtConstructor = ClientboundPlayerLookAtPacket.class.getDeclaredConstructor(FriendlyByteBuf.class);
-            lookAtConstructor.setAccessible(true);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        try {
-            rotationConstructor = ClientboundRotateHeadPacket.class.getDeclaredConstructor(FriendlyByteBuf.class);
-            rotationConstructor.setAccessible(true);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    @Override @SuppressWarnings("unchecked")
+    public void sendSharedEntityData(int entityId, Map<Integer, Number> dataValues, List<Player> sendTo) {
+        List<SynchedEntityData.DataValue<?>> nmsDataValues = dataValues.entrySet().stream().map(entry -> {
+            int index = entry.getKey();
+            Number value = entry.getValue();
+            return switch (value) {
+                case Byte byteVal -> new SynchedEntityData.DataValue<>(index, EntityDataSerializers.BYTE, byteVal);
+                case Float floatVal -> new SynchedEntityData.DataValue<>(index, EntityDataSerializers.FLOAT, floatVal);
+                case Integer intVal -> new SynchedEntityData.DataValue<>(index, EntityDataSerializers.INT, intVal);
+                default ->
+                        throw new IllegalArgumentException("Unsupported data value type: " + value.getClass().getSimpleName());
+            };
+        }).collect(Collectors.toList());
+
+        ClientboundSetEntityDataPacket packet = new ClientboundSetEntityDataPacket(entityId, nmsDataValues);
+        for (Player player : sendTo) sendPacket(player, packet);
     }
 
+    @Override
+    public void sendFakePlayerInfoPacket(
+            final Player skinnedPlayer,
+            final int entityId,
+            final UUID uuid,
+            final String npcName,
+            final List<Player> sendTo
+    ) {
+        ServerPlayer player = ((CraftPlayer) skinnedPlayer).getHandle();
+        String name = npcName.substring(0, 15);
+        GameProfile profile = new GameProfile(uuid, name);
+
+        Component component = AdventureUtils.MINI_MESSAGE.deserialize(name);
+        net.minecraft.network.chat.Component nmsComponent = HibiscusCommonsPlugin.isOnPaper() ? PaperAdventure.asVanilla(component) : net.minecraft.network.chat.Component.literal(name);
+
+        ClientboundPlayerInfoUpdatePacket.Entry entry = new ClientboundPlayerInfoUpdatePacket.Entry(uuid, profile, false, 0, GameType.CREATIVE, nmsComponent, player.getChatSession().asData());
+        EnumSet<ClientboundPlayerInfoUpdatePacket.Action> actions = EnumSet.of(ClientboundPlayerInfoUpdatePacket.Action.ADD_PLAYER);
+        ClientboundPlayerInfoUpdatePacket packet = new ClientboundPlayerInfoUpdatePacket(actions, entry);
+        for (Player p : sendTo) sendPacket(p, packet);
+    }
+
+    @Override
+    public void sendPlayerInfoRemovePacket(final UUID uuid, final List<Player> sendTo) {
+        ClientboundPlayerInfoRemovePacket packet = new ClientboundPlayerInfoRemovePacket(List.of(uuid));
+        for (Player player : sendTo) sendPacket(player, packet);
+    }
+
+    @Override
+    public void sendMovePacket(
+            final int entityId,
+            final @NotNull Location from,
+            final @NotNull Location to,
+            final boolean onGround,
+            @NotNull List<Player> sendTo
+    ) {
+        byte dx = (byte) (to.getX() -  from.getX());
+        byte dy = (byte) (to.getY() - from.getY());
+        byte dz = (byte) (to.getZ() - from.getZ());
+
+        ClientboundMoveEntityPacket.Pos packet = new ClientboundMoveEntityPacket.Pos(entityId, dx, dy, dz, onGround);
+        for (Player p : sendTo) sendPacket(p, packet);
+    }
+
+    @Override
+    public void sendGamemodeChange(Player player, GameMode gameMode) {
+        ClientboundGameEventPacket.Type type = ClientboundGameEventPacket.CHANGE_GAME_MODE;
+        float param = gameMode.ordinal();
+
+        ClientboundGameEventPacket packet = new ClientboundGameEventPacket(type, param);
+        sendPacket(player, packet);
+    }
+
+    @Override
+    public void sendRotateHeadPacket(int entityId, Location location, List<Player> sendTo) {
+        fakeNmsEntity.setId(entityId);
+        byte headRot = (byte) (location.getYaw() * 256.0F / 360.0F);
+
+        ClientboundRotateHeadPacket packet = new ClientboundRotateHeadPacket(fakeNmsEntity, headRot);
+        for (Player p : sendTo) sendPacket(p, packet);
+    }
+
+    @Override
+    public void sendRotationPacket(int entityId, float yaw, float pitch, boolean onGround, List<Player> sendTo) {
+        float ROTATION_FACTOR = 256.0F / 360.0F;
+        yaw = (byte) (yaw * ROTATION_FACTOR);
+        pitch = (byte) (pitch * ROTATION_FACTOR);
+        ClientboundMoveEntityPacket.Rot packet = new ClientboundMoveEntityPacket.Rot(entityId, (byte) yaw, (byte) pitch, onGround);
+        for (Player p : sendTo) sendPacket(p, packet);
+    }
+
+    @Override
+    public void sendRotationPacket(int entityId, Location location, boolean onGround, List<Player> sendTo) {
+        float ROTATION_FACTOR = 256.0F / 360.0F;
+        byte yaw = (byte) (location.getYaw() * ROTATION_FACTOR);
+        byte pitch = (byte) (location.getPitch() * ROTATION_FACTOR);
+        ClientboundMoveEntityPacket.Rot packet = new ClientboundMoveEntityPacket.Rot(entityId, yaw, pitch, onGround);
+        for (Player p : sendTo) sendPacket(p, packet);
+    }
 
     @Override
     public void sendEquipmentSlotUpdate(
@@ -185,28 +245,28 @@ public class NMSPackets extends NMSCommon implements me.lojosho.hibiscuscommons.
 
     @Override
     public void sendMountPacket(int mountId, int[] passengerIds, List<Player> sendTo) {
-        FriendlyByteBuf byteBuf = new FriendlyByteBuf(Unpooled.buffer());
-        byteBuf.writeVarInt(mountId);
-        byteBuf.writeVarIntArray(passengerIds);
-        try {
-            ClientboundSetPassengersPacket packet = passengerConstructor.newInstance(byteBuf);
-            for (Player p : sendTo) sendPacket(p, packet);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        List<Entity> passengers = Arrays.stream(passengerIds).mapToObj(id -> {
+            Entity passenger = new ArmorStand(net.minecraft.world.entity.EntityType.ARMOR_STAND, level);
+            passenger.setId(id);
+            return passenger;
+        }).toList();
+        fakeNmsEntity.passengers = ImmutableList.copyOf(passengers);
+        ClientboundSetPassengersPacket packet = new ClientboundSetPassengersPacket(fakeNmsEntity);
+        fakeNmsEntity.passengers = ImmutableList.of();
+        for (Player p : sendTo) sendPacket(p, packet);
     }
 
     @Override
     public void sendLeashPacket(int leashEntity, int entityId, List<Player> sendTo) {
-        FriendlyByteBuf byteBuf = new FriendlyByteBuf(Unpooled.buffer());
-        byteBuf.writeInt(leashEntity);
-        byteBuf.writeInt(entityId);
-        try {
-            ClientboundSetEntityLinkPacket packet = linkConstructor.newInstance(byteBuf);
-            for (Player p : sendTo) sendPacket(p, packet);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        // Fake entities just to avoid reflection
+        ServerLevel level = MinecraftServer.getServer().overworld();
+        Entity entity1 = new ArmorStand(net.minecraft.world.entity.EntityType.ARMOR_STAND, level);
+        Entity entity2 = new ArmorStand(net.minecraft.world.entity.EntityType.ARMOR_STAND, level);
+        entity1.setId(leashEntity);
+        entity2.setId(entityId);
+
+        ClientboundSetEntityLinkPacket packet = new ClientboundSetEntityLinkPacket(entity1, entity2);
+        for (Player p : sendTo) sendPacket(p, packet);
     }
 
     @Override
@@ -220,47 +280,20 @@ public class NMSPackets extends NMSCommon implements me.lojosho.hibiscuscommons.
             boolean onGround,
             List<Player> sendTo
     ) {
-        FriendlyByteBuf byteBuf = new FriendlyByteBuf(Unpooled.buffer());
-        byteBuf.writeVarInt(entityId);
-        byteBuf.writeDouble(x);
-        byteBuf.writeDouble(y);
-        byteBuf.writeDouble(z);
-        byteBuf.writeByte((byte) (yaw * 256.0F / 360.0F));
-        byteBuf.writeByte((byte) (pitch * 256.0F / 360.0F));
-        byteBuf.writeBoolean(onGround);
+        fakeNmsEntity.setId(entityId);
+        fakeNmsEntity.setRot((yaw * 256.0F / 360.0F), (pitch * 256.0F / 360.0F));
+        fakeNmsEntity.setOnGround(onGround);
 
-        try {
-            ClientboundTeleportEntityPacket packet = teleportConstructor.newInstance(byteBuf);
-            for (Player p : sendTo) sendPacket(p, packet);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    @Override
-    public void sendRotationPacket(int entityId, float yaw, boolean onGround, List<Player> sendTo) {
-        FriendlyByteBuf byteBuf = new FriendlyByteBuf(Unpooled.buffer());
-        byteBuf.writeVarInt(entityId);
-        byteBuf.writeFloat(yaw);
-        byteBuf.writeBoolean(onGround);
-        try {
-            ClientboundPlayerLookAtPacket packet = lookAtConstructor.newInstance(byteBuf);
-            for (Player p : sendTo) sendPacket(p, packet);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        ClientboundTeleportEntityPacket packet = new ClientboundTeleportEntityPacket(fakeNmsEntity);
+        for (Player p : sendTo) sendPacket(p, packet);
     }
 
     @Override
     public void sendCameraPacket(int entityId, List<Player> sendTo) {
-        FriendlyByteBuf byteBuf = new FriendlyByteBuf(Unpooled.buffer());
-        byteBuf.writeVarInt(entityId);
-        try {
-            ClientboundSetCameraPacket packet = cameraConstructor.newInstance(byteBuf);
-            for (Player p : sendTo) sendPacket(p, packet);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        fakeNmsEntity.setId(entityId);
+
+        ClientboundSetCameraPacket packet = new ClientboundSetCameraPacket(fakeNmsEntity);
+        for (Player p : sendTo) sendPacket(p, packet);
     }
 
     @Override
@@ -380,5 +413,19 @@ public class NMSPackets extends NMSCommon implements me.lojosho.hibiscuscommons.
 
             sendPacket(player, removePacket);
         }, 2L);
+    }
+
+    @Override
+    public Object createMountPacket(int entityId, int[] passengerIds) {
+        fakeNmsEntity.setId(entityId);
+        List<Entity> passengers = Arrays.stream(passengerIds).mapToObj(id -> {
+            Entity passenger = new ArmorStand(net.minecraft.world.entity.EntityType.ARMOR_STAND, level);
+            passenger.setId(id);
+            return passenger;
+        }).toList();
+        fakeNmsEntity.passengers = ImmutableList.copyOf(passengers);
+        ClientboundSetPassengersPacket packet = new ClientboundSetPassengersPacket(fakeNmsEntity);
+        fakeNmsEntity.passengers = ImmutableList.of();
+        return packet;
     }
 }
