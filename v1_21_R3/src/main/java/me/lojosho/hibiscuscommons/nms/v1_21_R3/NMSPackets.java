@@ -255,16 +255,16 @@ public class NMSPackets extends NMSCommon implements me.lojosho.hibiscuscommons.
 
         //Remove the Team (i assume so if it exists)
         ClientboundSetPlayerTeamPacket removeTeamPacket = ClientboundSetPlayerTeamPacket.createRemovePacket(team);
-        sendPacket(player, removeTeamPacket);
         //Creating the Team
         ClientboundSetPlayerTeamPacket createTeamPacket = ClientboundSetPlayerTeamPacket.createAddOrModifyPacket(team, true);
-        sendPacket(player, createTeamPacket);
         //Adding players to the team (You have to use the NPC's name, and add it to a list)
         ClientboundSetPlayerTeamPacket createPlayerTeamPacket = ClientboundSetPlayerTeamPacket.createMultiplePlayerPacket(team, new ArrayList<String>() {{
             add(name);
             add(player.getName());
         }}, ClientboundSetPlayerTeamPacket.Action.ADD);
-        sendPacket(player, createPlayerTeamPacket);
+
+        ClientboundBundlePacket bundlePacket = new ClientboundBundlePacket(List.of(removeTeamPacket, createTeamPacket, createPlayerTeamPacket));
+        sendPacket(player, bundlePacket);
     }
 
 
