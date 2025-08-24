@@ -214,7 +214,8 @@ bukkit {
         "MMOItems",
         "Eco",
         "Nexo",
-        "CraftEngine"
+        "CraftEngine",
+        "GSit"
     )
     version = "${project.version}"
     loadBefore = listOf(
