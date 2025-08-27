@@ -8,9 +8,12 @@ public class PlayerScaleWrapper {
     private final int entityId;
     @Getter
     private final double scale;
+    @Getter
+    private final double base;
 
-    public PlayerScaleWrapper(int entityId, double scale) {
+    public PlayerScaleWrapper(int entityId, double base, double scale) {
         this.entityId = entityId;
         this.scale = scale;
+        this.base = base;
     }
 }

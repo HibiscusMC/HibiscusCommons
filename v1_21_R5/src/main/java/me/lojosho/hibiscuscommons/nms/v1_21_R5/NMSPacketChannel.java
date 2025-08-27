@@ -12,6 +12,7 @@ import me.lojosho.hibiscuscommons.plugins.SubPlugins;
 import me.lojosho.hibiscuscommons.util.MessagesUtil;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.*;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.item.ItemStack;
@@ -182,7 +183,18 @@ public class NMSPacketChannel extends ChannelDuplexHandler {
         }
 
         AtomicReference<PacketAction> action = new AtomicReference<>(PacketAction.NOTHING);
-        PlayerScaleWrapper wrapper = new PlayerScaleWrapper(packet.getEntityId(), nmsScaleAttribute.base());
+
+        final double base = nmsScaleAttribute.base();
+        double total = base;
+
+        for (AttributeModifier modifier : nmsScaleAttribute.modifiers()) {
+            switch (modifier.operation()) {
+                case ADD_VALUE -> total += modifier.amount();
+                case ADD_MULTIPLIED_BASE -> total += modifier.amount() * nmsScaleAttribute.base();
+                case ADD_MULTIPLIED_TOTAL -> total += modifier.amount() * total;
+            }
+        }
+        PlayerScaleWrapper wrapper = new PlayerScaleWrapper(packet.getEntityId(), base, total);
 
         SubPlugins.getSubPlugins().forEach(plugin -> {
             PacketAction pluginAction = plugin.getPacketInterface().readPlayerScale(player, wrapper);
