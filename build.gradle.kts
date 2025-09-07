@@ -26,8 +26,8 @@ allprojects {
         // Paper Repo
         maven("https://repo.papermc.io/repository/maven-public/")
 
-        // UpdateChecker
-        maven("https://repo.jeff-media.com/public")
+        // UpdateChecker TODO: Fix this and move it to internal repo, a hacky workaround for now
+        maven("https://maven.paulem.ovh/releases")
 
         // Nexo
         maven("https://repo.nexomc.com/snapshots/")
@@ -120,7 +120,7 @@ allprojects {
         }
         implementation("net.kyori:option:1.1.0")
         implementation("org.bstats:bstats-bukkit:3.1.0")
-        implementation("com.jeff_media:SpigotUpdateChecker:3.0.0")
+        implementation("com.jeff_media:SpigotUpdateChecker:3.0.4")
         implementation("com.github.BG-Software-LLC:CommentedConfiguration:bed3c46369")
     }
 }
