@@ -524,6 +524,7 @@ public class NMSPackets extends NMSCommon implements me.lojosho.hibiscuscommons.
         sendPacket(sendTo, bundlePacket);
     }
 
+    @Override
     public void sendInvisibleArmorstand(int entityId, Location location, UUID uuid, byte mask, List<Player> sendTo) {
         net.minecraft.world.entity.EntityType<?> nmsEntityType = net.minecraft.world.entity.EntityType.ARMOR_STAND;
         double x = location.getX();
