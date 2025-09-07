@@ -60,10 +60,16 @@ import java.util.stream.Collectors;
 public class NMSPackets extends NMSCommon implements me.lojosho.hibiscuscommons.nms.NMSPackets {
 
     private static ServerLevel level = MinecraftServer.getServer().overworld();
+    private static final Map<Integer, Number> CLOUD_EFFECT_INVISIBLE_DATA_VALUES = Map.of(0, (byte) 0x20, 8, 0f); // For cloud effects
     private static Entity fakeNmsEntity = new ArmorStand(net.minecraft.world.entity.EntityType.ARMOR_STAND, level);
 
     @Override @SuppressWarnings("unchecked")
     public void sendSharedEntityData(int entityId, Map<Integer, Number> dataValues, List<Player> sendTo) {
+        ClientboundSetEntityDataPacket packet = getSharedEntityPacket(entityId, dataValues);
+        for (Player player : sendTo) sendPacket(player, packet);
+    }
+
+    private ClientboundSetEntityDataPacket getSharedEntityPacket(int entityId, Map<Integer, Number> dataValues) {
         List<SynchedEntityData.DataValue<?>> nmsDataValues = dataValues.entrySet().stream().map(entry -> {
             int index = entry.getKey();
             Number value = entry.getValue();
@@ -76,8 +82,7 @@ public class NMSPackets extends NMSCommon implements me.lojosho.hibiscuscommons.
             };
         }).collect(Collectors.toList());
 
-        ClientboundSetEntityDataPacket packet = new ClientboundSetEntityDataPacket(entityId, nmsDataValues);
-        for (Player player : sendTo) sendPacket(player, packet);
+        return new ClientboundSetEntityDataPacket(entityId, nmsDataValues);
     }
 
     @Override
@@ -502,5 +507,41 @@ public class NMSPackets extends NMSCommon implements me.lojosho.hibiscuscommons.
         ClientboundSetPassengersPacket packet = new ClientboundSetPassengersPacket(fakeNmsEntity);
         fakeNmsEntity.passengers = ImmutableList.of();
         return packet;
+    }
+    @Override
+    public void sendInvisibleParticleCloud(int entityId, Location location, UUID uuid, List<Player> sendTo) {
+        net.minecraft.world.entity.EntityType<?> nmsEntityType = net.minecraft.world.entity.EntityType.AREA_EFFECT_CLOUD;
+        double x = location.getX();
+        double y = location.getY();
+        double z = location.getZ();
+        float yaw = location.getYaw();
+        float pitch = location.getPitch();
+        Vec3 velocity = Vec3.ZERO;
+        float headYaw = 0f;
+
+        ClientboundAddEntityPacket spawnPacket = new ClientboundAddEntityPacket(entityId, uuid, x, y, z, yaw, pitch, nmsEntityType, 0, velocity, headYaw);
+        ClientboundSetEntityDataPacket dataPacket = getSharedEntityPacket(entityId, CLOUD_EFFECT_INVISIBLE_DATA_VALUES);
+
+        ClientboundBundlePacket bundlePacket = new ClientboundBundlePacket(List.of(spawnPacket, dataPacket));
+        sendPacket(sendTo, bundlePacket);
+    }
+
+    public void sendInvisibleArmorstand(int entityId, Location location, UUID uuid, byte mask, List<Player> sendTo) {
+        net.minecraft.world.entity.EntityType<?> nmsEntityType = net.minecraft.world.entity.EntityType.ARMOR_STAND;
+        double x = location.getX();
+        double y = location.getY();
+        double z = location.getZ();
+        float yaw = location.getYaw();
+        float pitch = location.getPitch();
+        Vec3 velocity = Vec3.ZERO;
+        float headYaw = 0f;
+
+        final ClientboundAddEntityPacket spawnPacket = new ClientboundAddEntityPacket(entityId, uuid, x, y, z, yaw, pitch, nmsEntityType, 0, velocity, headYaw);
+
+        final Map<Integer, Number> dataValues = Map.of(0, mask, 15, (byte) 0x10);
+        final ClientboundSetEntityDataPacket dataPacket = getSharedEntityPacket(entityId, dataValues);
+
+        ClientboundBundlePacket bundlePacket = new ClientboundBundlePacket(List.of(spawnPacket, dataPacket));
+        sendPacket(sendTo, bundlePacket);
     }
 }
