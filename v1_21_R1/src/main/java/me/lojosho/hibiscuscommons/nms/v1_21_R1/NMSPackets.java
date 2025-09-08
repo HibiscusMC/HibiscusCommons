@@ -282,7 +282,7 @@ public class NMSPackets extends NMSCommon implements me.lojosho.hibiscuscommons.
         fakeNmsEntity.passengers = ImmutableList.copyOf(passengers);
         ClientboundSetPassengersPacket packet = new ClientboundSetPassengersPacket(fakeNmsEntity);
         fakeNmsEntity.passengers = ImmutableList.of();
-        for (Player p : sendTo) sendPacket(p, packet);
+        for (Player p : sendTo) sendPacketSync(p, packet);
     }
 
     @Override

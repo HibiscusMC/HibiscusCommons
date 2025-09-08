@@ -30,4 +30,10 @@ public class NMSCommon {
             }
         });
     }
+
+    public void sendPacketSync(@NotNull Player player, @NotNull Packet packet) {
+        ServerPlayer serverPlayer = ((CraftPlayer) player).getHandle();
+        ServerPlayerConnection connection = serverPlayer.connection;
+        connection.send(packet);
+    }
 }
