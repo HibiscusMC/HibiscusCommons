@@ -1,7 +1,6 @@
 package me.lojosho.hibiscuscommons.nms.v1_21_R1;
 
 import com.google.common.collect.ImmutableList;
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
@@ -10,7 +9,6 @@ import com.mojang.serialization.JsonOps;
 import io.papermc.paper.adventure.PaperAdventure;
 import it.unimi.dsi.fastutil.ints.IntList;
 import me.lojosho.hibiscuscommons.HibiscusCommonsPlugin;
-import me.lojosho.hibiscuscommons.nms.v1_21_R1.NMSCommon;
 import me.lojosho.hibiscuscommons.util.AdventureUtils;
 import me.lojosho.hibiscuscommons.util.MessagesUtil;
 import net.kyori.adventure.text.Component;
@@ -60,6 +58,7 @@ public class NMSPackets extends NMSCommon implements me.lojosho.hibiscuscommons.
 
     private static ServerLevel level = MinecraftServer.getServer().overworld();
     private static final Map<Integer, Number> CLOUD_EFFECT_INVISIBLE_DATA_VALUES = Map.of(0, (byte) 0x20, 8, 0f); // For cloud effects
+    private static final Map<Integer, Number> GENERIC_INVISIBLE_DATA_VALUES = Map.of(0, (byte) 0x20); // For most entities if you just need genericaly invisible
     private static Entity fakeNmsEntity = new ArmorStand(net.minecraft.world.entity.EntityType.ARMOR_STAND, level);
 
     @Override @SuppressWarnings("unchecked")
@@ -509,5 +508,23 @@ public class NMSPackets extends NMSCommon implements me.lojosho.hibiscuscommons.
 
         ClientboundBundlePacket bundlePacket = new ClientboundBundlePacket(List.of(spawnPacket, dataPacket));
         for (Player p : sendTo) sendPacket(p, bundlePacket);
+    }
+
+    @Override
+    public void sendInvisibleEntity(int entityId, EntityType type, Location location, UUID uuid, List<Player> sendTo) {
+        net.minecraft.world.entity.EntityType<?> nmsEntityType = CraftEntityType.bukkitToMinecraft(type);
+        double x = location.getX();
+        double y = location.getY();
+        double z = location.getZ();
+        float yaw = location.getYaw();
+        float pitch = location.getPitch();
+        Vec3 velocity = Vec3.ZERO;
+        float headYaw = 0f;
+
+        final ClientboundAddEntityPacket spawnPacket = new ClientboundAddEntityPacket(entityId, uuid, x, y, z, yaw, pitch, nmsEntityType, 0, velocity, headYaw);
+        final ClientboundSetEntityDataPacket dataPacket = getSharedEntityPacket(entityId, GENERIC_INVISIBLE_DATA_VALUES);
+
+        ClientboundBundlePacket bundlePacket = new ClientboundBundlePacket(List.of(spawnPacket, dataPacket));
+        sendPacket(sendTo, bundlePacket);
     }
 }
