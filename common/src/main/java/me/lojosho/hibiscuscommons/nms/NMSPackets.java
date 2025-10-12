@@ -2,7 +2,6 @@ package me.lojosho.hibiscuscommons.nms;
 
 import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.ints.IntList;
-import me.lojosho.hibiscuscommons.packets.BundledRidingData;
 import net.kyori.adventure.text.Component;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -104,10 +103,6 @@ public interface NMSPackets {
     void sendInvisibleArmorstand(int entityId, Location location, UUID uuid, byte mask, List<Player> sendTo);
 
     void sendInvisibleEntity(int entityId, EntityType type, Location location, UUID uuid, List<Player> sendTo);
-
-    default void sendBundledRidingPacket(BundledRidingData packet, List<Player> sendTo) {
-
-    }
 
     Object createMountPacket(int entityId, int[] passengerIds);
 }

@@ -10,7 +10,6 @@ import com.mojang.serialization.JsonOps;
 import io.papermc.paper.adventure.PaperAdventure;
 import it.unimi.dsi.fastutil.ints.IntList;
 import me.lojosho.hibiscuscommons.HibiscusCommonsPlugin;
-import me.lojosho.hibiscuscommons.packets.BundledRidingData;
 import me.lojosho.hibiscuscommons.util.AdventureUtils;
 import me.lojosho.hibiscuscommons.util.MessagesUtil;
 import net.kyori.adventure.text.Component;
@@ -283,7 +282,7 @@ public class NMSPackets extends NMSCommon implements me.lojosho.hibiscuscommons.
         fakeNmsEntity.passengers = ImmutableList.copyOf(passengers);
         ClientboundSetPassengersPacket packet = new ClientboundSetPassengersPacket(fakeNmsEntity);
         fakeNmsEntity.passengers = ImmutableList.of();
-        for (Player p : sendTo) sendPacketSync(p, packet);
+        for (Player p : sendTo) sendPacket(p, packet);
     }
 
     @Override
@@ -561,18 +560,6 @@ public class NMSPackets extends NMSCommon implements me.lojosho.hibiscuscommons.
         final ClientboundSetEntityDataPacket dataPacket = getSharedEntityPacket(entityId, GENERIC_INVISIBLE_DATA_VALUES);
 
         ClientboundBundlePacket bundlePacket = new ClientboundBundlePacket(List.of(spawnPacket, dataPacket));
-        sendPacket(sendTo, bundlePacket);
-    }
-
-    @Override
-    public void sendBundledRidingPacket(BundledRidingData packet, List<Player> sendTo) {
-        List<ClientboundSetPassengersPacket> packets = new ArrayList<>();
-        for (Map.Entry<Integer, List<Integer>> entry : packet.getQueued().entrySet()) {
-            packets.add((ClientboundSetPassengersPacket) createMountPacket(entry.getKey(), entry.getValue().stream()
-                    .mapToInt(Integer::intValue)
-                    .toArray()));
-        }
-        ClientboundBundlePacket bundlePacket = new ClientboundBundlePacket(List.copyOf(packets));
         sendPacket(sendTo, bundlePacket);
     }
 }
