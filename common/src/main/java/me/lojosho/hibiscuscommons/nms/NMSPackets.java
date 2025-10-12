@@ -97,12 +97,5 @@ public interface NMSPackets {
 
     void sendToastPacket(Player player, ItemStack icon, Component title, Component description);
 
-    void sendInvisibleParticleCloud(int entityId, Location location, UUID uuid, List<Player> sendTo);
-
-    // The mask here is for is the armorstand is on fire or not.
-    void sendInvisibleArmorstand(int entityId, Location location, UUID uuid, byte mask, List<Player> sendTo);
-
-    void sendInvisibleEntity(int entityId, EntityType type, Location location, UUID uuid, List<Player> sendTo);
-
     Object createMountPacket(int entityId, int[] passengerIds);
 }
