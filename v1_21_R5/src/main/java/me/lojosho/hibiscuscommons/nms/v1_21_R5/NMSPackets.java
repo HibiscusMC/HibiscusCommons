@@ -559,6 +559,6 @@ public class NMSPackets extends NMSCommon implements me.lojosho.hibiscuscommons.
         final ClientboundSetEntityDataPacket dataPacket = getSharedEntityPacket(entityId, GENERIC_INVISIBLE_DATA_VALUES);
 
         ClientboundBundlePacket bundlePacket = new ClientboundBundlePacket(List.of(spawnPacket, dataPacket));
-        sendPacket(sendTo, bundlePacket);
+        for (Player p : sendTo) sendPacket(p, bundlePacket);
     }
 }
