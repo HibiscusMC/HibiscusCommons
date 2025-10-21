@@ -11,7 +11,7 @@ plugins {
 }
 
 group = "me.lojosho"
-version = "0.8.0${getGitCommitHash()}"
+version = "0.8.1${getGitCommitHash()}"
 
 allprojects {
     apply(plugin = "java")
@@ -130,6 +130,7 @@ dependencies {
     implementation(project(path = ":v1_21_R3", configuration = "reobf"))
     implementation(project(path = ":v1_21_R4", configuration = "reobf"))
     implementation(project(path = ":v1_21_R5", configuration = "reobf"))
+    implementation(project(path = ":v1_21_R6", configuration = "reobf"))
 }
 
 tasks {
@@ -164,6 +165,7 @@ tasks {
         dependsOn(":v1_21_R3:reobfJar")
         dependsOn(":v1_21_R4:reobfJar")
         dependsOn(":v1_21_R5:reobfJar")
+        dependsOn(":v1_21_R6:reobfJar")
         mergeServiceFiles()
 
         relocate("org.bstats", "me.lojosho.shaded.bstats")
