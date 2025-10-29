@@ -54,21 +54,26 @@ import org.joml.Vector3f;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class NMSPackets extends NMSCommon implements me.lojosho.hibiscuscommons.nms.NMSPackets {
+public class NMSPackets extends NMSCommon implements me.lojosho.hibiscuscommons.nms.NMSPackets
+{
 
     private static ServerLevel level = MinecraftServer.getServer().overworld();
     private static final Map<Integer, Number> CLOUD_EFFECT_INVISIBLE_DATA_VALUES = Map.of(0, (byte) 0x20, 8, 0f); // For cloud effects
     private static final Map<Integer, Number> GENERIC_INVISIBLE_DATA_VALUES = Map.of(0, (byte) 0x20); // For most entities if you just need genericaly invisible
     private static Entity fakeNmsEntity = new ArmorStand(net.minecraft.world.entity.EntityType.ARMOR_STAND, level);
 
-    @Override @SuppressWarnings("unchecked")
-    public void sendSharedEntityData(int entityId, Map<Integer, Number> dataValues, List<Player> sendTo) {
+    @Override
+    @SuppressWarnings("unchecked")
+    public void sendSharedEntityData(int entityId, Map<Integer, Number> dataValues, List<Player> sendTo)
+    {
         ClientboundSetEntityDataPacket packet = getSharedEntityPacket(entityId, dataValues);
         for (Player player : sendTo) sendPacket(player, packet);
     }
 
-    private ClientboundSetEntityDataPacket getSharedEntityPacket(int entityId, Map<Integer, Number> dataValues) {
-        List<SynchedEntityData.DataValue<?>> nmsDataValues = dataValues.entrySet().stream().map(entry -> {
+    private ClientboundSetEntityDataPacket getSharedEntityPacket(int entityId, Map<Integer, Number> dataValues)
+    {
+        List<SynchedEntityData.DataValue<?>> nmsDataValues = dataValues.entrySet().stream().map(entry ->
+            {
             int index = entry.getKey();
             Number value = entry.getValue();
             return switch (value) {
@@ -78,7 +83,7 @@ public class NMSPackets extends NMSCommon implements me.lojosho.hibiscuscommons.
                 default ->
                         throw new IllegalArgumentException("Unsupported data value type: " + value.getClass().getSimpleName());
             };
-        }).collect(Collectors.toList());
+            }).collect(Collectors.toList());
 
         return new ClientboundSetEntityDataPacket(entityId, nmsDataValues);
     }
@@ -90,7 +95,8 @@ public class NMSPackets extends NMSCommon implements me.lojosho.hibiscuscommons.
             final UUID uuid,
             final String npcName,
             final List<Player> sendTo
-    ) {
+    )
+    {
         ServerPlayer player = ((CraftPlayer) skinnedPlayer).getHandle();
         String name = npcName;
         if (name.length() > 15) name = name.substring(0, 15);
@@ -113,7 +119,8 @@ public class NMSPackets extends NMSCommon implements me.lojosho.hibiscuscommons.
     }
 
     @Override
-    public void sendPlayerInfoRemovePacket(final UUID uuid, final List<Player> sendTo) {
+    public void sendPlayerInfoRemovePacket(final UUID uuid, final List<Player> sendTo)
+    {
         ClientboundPlayerInfoRemovePacket packet = new ClientboundPlayerInfoRemovePacket(List.of(uuid));
         for (Player player : sendTo) sendPacket(player, packet);
     }
@@ -125,8 +132,9 @@ public class NMSPackets extends NMSCommon implements me.lojosho.hibiscuscommons.
             final @NotNull Location to,
             final boolean onGround,
             @NotNull List<Player> sendTo
-    ) {
-        byte dx = (byte) (to.getX() -  from.getX());
+    )
+    {
+        byte dx = (byte) (to.getX() - from.getX());
         byte dy = (byte) (to.getY() - from.getY());
         byte dz = (byte) (to.getZ() - from.getZ());
 
@@ -135,7 +143,8 @@ public class NMSPackets extends NMSCommon implements me.lojosho.hibiscuscommons.
     }
 
     @Override
-    public void sendGamemodeChange(Player player, GameMode gameMode) {
+    public void sendGamemodeChange(Player player, GameMode gameMode)
+    {
         ClientboundGameEventPacket.Type type = ClientboundGameEventPacket.CHANGE_GAME_MODE;
         float param = gameMode.getValue();
 
@@ -144,7 +153,8 @@ public class NMSPackets extends NMSCommon implements me.lojosho.hibiscuscommons.
     }
 
     @Override
-    public void sendLookAtPacket(int entityId, Location location, List<Player> sendTo) {
+    public void sendLookAtPacket(int entityId, Location location, List<Player> sendTo)
+    {
         fakeNmsEntity.setId(entityId);
         fakeNmsEntity.getBukkitEntity().teleport(location);
         ClientboundPlayerLookAtPacket packet = new ClientboundPlayerLookAtPacket(EntityAnchorArgument.Anchor.EYES, fakeNmsEntity, EntityAnchorArgument.Anchor.EYES);
@@ -152,7 +162,8 @@ public class NMSPackets extends NMSCommon implements me.lojosho.hibiscuscommons.
     }
 
     @Override
-    public void sendRotateHeadPacket(int entityId, Location location, List<Player> sendTo) {
+    public void sendRotateHeadPacket(int entityId, Location location, List<Player> sendTo)
+    {
         fakeNmsEntity.setId(entityId);
         byte headRot = (byte) (location.getYaw() * 256.0F / 360.0F);
 
@@ -161,17 +172,19 @@ public class NMSPackets extends NMSCommon implements me.lojosho.hibiscuscommons.
     }
 
     @Override
-    public void sendRotationPacket(int entityId, float originalYaw, float pitch, boolean onGround, List<Player> sendTo) {
+    public void sendRotationPacket(int entityId, float originalYaw, float pitch, boolean onGround, List<Player> sendTo)
+    {
         float ROTATION_FACTOR = 256.0F / 360.0F;
         byte yaw = (byte) (originalYaw * ROTATION_FACTOR);
         pitch = (byte) (pitch * ROTATION_FACTOR);
-        MessagesUtil.sendDebugMessages("sendRotationPacket. Original: " + originalYaw + " modified: "  + yaw);
+        MessagesUtil.sendDebugMessages("sendRotationPacket. Original: " + originalYaw + " modified: " + yaw);
         ClientboundMoveEntityPacket.Rot packet = new ClientboundMoveEntityPacket.Rot(entityId, (byte) yaw, (byte) pitch, onGround);
         for (Player p : sendTo) sendPacket(p, packet);
     }
 
     @Override
-    public void sendRotationPacket(int entityId, Location location, boolean onGround, List<Player> sendTo) {
+    public void sendRotationPacket(int entityId, Location location, boolean onGround, List<Player> sendTo)
+    {
         float ROTATION_FACTOR = 256.0F / 360.0F;
         byte yaw = (byte) (location.getYaw() * ROTATION_FACTOR);
         byte pitch = (byte) (location.getPitch() * ROTATION_FACTOR);
@@ -185,7 +198,8 @@ public class NMSPackets extends NMSCommon implements me.lojosho.hibiscuscommons.
             org.bukkit.inventory.EquipmentSlot slot,
             ItemStack item,
             List<Player> sendTo
-    ) {
+    )
+    {
 
         EquipmentSlot nmsSlot = null;
         net.minecraft.world.item.ItemStack nmsItem = null;
@@ -209,7 +223,8 @@ public class NMSPackets extends NMSCommon implements me.lojosho.hibiscuscommons.
             int entityId,
             HashMap<org.bukkit.inventory.EquipmentSlot, ItemStack> equipment,
             List<Player> sendTo
-    ) {
+    )
+    {
 
         List<Pair<EquipmentSlot, net.minecraft.world.item.ItemStack>> pairs = new ArrayList<>();
 
@@ -230,7 +245,8 @@ public class NMSPackets extends NMSCommon implements me.lojosho.hibiscuscommons.
     public void sendSlotUpdate(
             Player player,
             int slot
-    ) {
+    )
+    {
         int index = 0;
 
         ServerPlayer player1 = ((CraftPlayer) player).getHandle();
@@ -249,7 +265,8 @@ public class NMSPackets extends NMSCommon implements me.lojosho.hibiscuscommons.
     }
 
     @Override
-    public void sendScoreboardHideNamePacket(Player player, String name) {
+    public void sendScoreboardHideNamePacket(Player player, String name)
+    {
         //Creating the team
         PlayerTeam team = new PlayerTeam(((CraftScoreboard) Bukkit.getScoreboardManager().getMainScoreboard()).getHandle(), name);
 
@@ -261,7 +278,8 @@ public class NMSPackets extends NMSCommon implements me.lojosho.hibiscuscommons.
         //Creating the Team
         ClientboundSetPlayerTeamPacket createTeamPacket = ClientboundSetPlayerTeamPacket.createAddOrModifyPacket(team, true);
         //Adding players to the team (You have to use the NPC's name, and add it to a list)
-        ClientboundSetPlayerTeamPacket createPlayerTeamPacket = ClientboundSetPlayerTeamPacket.createMultiplePlayerPacket(team, new ArrayList<String>() {{
+        ClientboundSetPlayerTeamPacket createPlayerTeamPacket = ClientboundSetPlayerTeamPacket.createMultiplePlayerPacket(team, new ArrayList<String>()
+        {{
             add(name);
             add(player.getName());
         }}, ClientboundSetPlayerTeamPacket.Action.ADD);
@@ -272,12 +290,14 @@ public class NMSPackets extends NMSCommon implements me.lojosho.hibiscuscommons.
 
 
     @Override
-    public void sendMountPacket(int mountId, int[] passengerIds, List<Player> sendTo) {
-        List<Entity> passengers = Arrays.stream(passengerIds).mapToObj(id -> {
+    public void sendMountPacket(int mountId, int[] passengerIds, List<Player> sendTo)
+    {
+        List<Entity> passengers = Arrays.stream(passengerIds).mapToObj(id ->
+            {
             Entity passenger = new ArmorStand(net.minecraft.world.entity.EntityType.ARMOR_STAND, level);
             passenger.setId(id);
             return passenger;
-        }).toList();
+            }).toList();
         fakeNmsEntity.setId(mountId);
         fakeNmsEntity.passengers = ImmutableList.copyOf(passengers);
         ClientboundSetPassengersPacket packet = new ClientboundSetPassengersPacket(fakeNmsEntity);
@@ -286,7 +306,8 @@ public class NMSPackets extends NMSCommon implements me.lojosho.hibiscuscommons.
     }
 
     @Override
-    public void sendLeashPacket(int leashEntity, int entityId, List<Player> sendTo) {
+    public void sendLeashPacket(int leashEntity, int entityId, List<Player> sendTo)
+    {
         // Fake entities just to avoid reflection
         ServerLevel level = MinecraftServer.getServer().overworld();
         Entity entity1 = new ArmorStand(net.minecraft.world.entity.EntityType.ARMOR_STAND, level);
@@ -308,7 +329,8 @@ public class NMSPackets extends NMSCommon implements me.lojosho.hibiscuscommons.
             float pitch,
             boolean onGround,
             List<Player> sendTo
-    ) {
+    )
+    {
         try {
             fakeNmsEntity.setId(entityId);
             fakeNmsEntity.teleportTo(x, y, z);
@@ -321,7 +343,8 @@ public class NMSPackets extends NMSCommon implements me.lojosho.hibiscuscommons.
     }
 
     @Override
-    public void sendCameraPacket(int entityId, List<Player> sendTo) {
+    public void sendCameraPacket(int entityId, List<Player> sendTo)
+    {
         fakeNmsEntity.setId(entityId);
 
         ClientboundSetCameraPacket packet = new ClientboundSetCameraPacket(fakeNmsEntity);
@@ -330,7 +353,8 @@ public class NMSPackets extends NMSCommon implements me.lojosho.hibiscuscommons.
 
 
     @Override
-    public void sendSpawnEntityPacket(int entityId, UUID uuid, EntityType entityType, Location location, List<Player> sendTo) {
+    public void sendSpawnEntityPacket(int entityId, UUID uuid, EntityType entityType, Location location, List<Player> sendTo)
+    {
         net.minecraft.world.entity.EntityType<?> nmsEntityType = CraftEntityType.bukkitToMinecraft(entityType);
         double x = location.getX();
         double y = location.getY();
@@ -345,16 +369,20 @@ public class NMSPackets extends NMSCommon implements me.lojosho.hibiscuscommons.
     }
 
     @Override
-    public void sendEntityDestroyPacket(IntList entityIds, List<Player> sendTo) {
+    public void sendEntityDestroyPacket(IntList entityIds, List<Player> sendTo)
+    {
         ClientboundRemoveEntitiesPacket packet = new ClientboundRemoveEntitiesPacket(entityIds);
         for (Player p : sendTo) sendPacket(p, packet);
     }
 
     @Override
-    public void sendEntityScalePacket(int entityId, double scale, List<Player> sendTo) {
+    public void sendEntityScalePacket(int entityId, double scale, List<Player> sendTo)
+    {
         AttributeInstance attribute = new AttributeInstance(
-            Attributes.SCALE,
-            (ignored) -> {}
+                Attributes.SCALE,
+                (ignored) ->
+                    {
+                    }
         );
         attribute.setBaseValue(scale);
 
@@ -371,7 +399,8 @@ public class NMSPackets extends NMSCommon implements me.lojosho.hibiscuscommons.
                                         Display.Billboard billboard,
                                         int blockLight, int skyLight, float viewRange, float width, float height,
                                         ItemDisplay.ItemDisplayTransform transform, ItemStack itemStack,
-                                        List<Player> sendTo) {
+                                        List<Player> sendTo)
+    {
 
         List<SynchedEntityData.DataValue<?>> dataValues = new ArrayList<>();
         dataValues.add(new SynchedEntityData.DataValue<>(10, EntityDataSerializers.INT, POSITION_INTERPOLATION_DURATION));
@@ -392,7 +421,8 @@ public class NMSPackets extends NMSCommon implements me.lojosho.hibiscuscommons.
     }
 
     @Override
-    public void sendToastPacket(Player player, ItemStack icon, Component title, Component description) {
+    public void sendToastPacket(Player player, ItemStack icon, Component title, Component description)
+    {
         final var key = ResourceLocation.fromNamespaceAndPath("hibiscuscommons", UUID.randomUUID().toString());
 
         JsonObject json = new JsonObject();
@@ -443,7 +473,8 @@ public class NMSPackets extends NMSCommon implements me.lojosho.hibiscuscommons.
         MinecraftServer.getServer().getAdvancements().tree().addAll(Set.of(advancementHolder));
         progress.getRemainingCriteria().forEach(criteria -> nmsPlayer.getAdvancements().award(advancementHolder, criteria));
 
-        Bukkit.getScheduler().runTaskLater(HibiscusCommonsPlugin.getInstance(), () -> {
+        Runnable packetRemove = () ->
+            {
             progress.getRemainingCriteria().forEach(criteria -> nmsPlayer.getAdvancements().revoke(advancementHolder, criteria));
             MinecraftServer.getServer().getAdvancements().tree().remove(Set.of(key));
 
@@ -457,24 +488,33 @@ public class NMSPackets extends NMSCommon implements me.lojosho.hibiscuscommons.
             );
 
             sendPacket(player, removePacket);
-        }, 2L);
+            };
+
+        if (HibiscusCommonsPlugin.isOnPaper())
+            Bukkit.getScheduler().runTaskLater(HibiscusCommonsPlugin.getInstance(), packetRemove, 2L);
+        else if (HibiscusCommonsPlugin.isOnFolia())
+            HibiscusCommonsPlugin.getFoliaTask().scheduleSyncDelayedTask(packetRemove, 2);
     }
 
     @Override
-    public Object createMountPacket(int entityId, int[] passengerIds) {
+    public Object createMountPacket(int entityId, int[] passengerIds)
+    {
         fakeNmsEntity.setId(entityId);
-        List<Entity> passengers = Arrays.stream(passengerIds).mapToObj(id -> {
+        List<Entity> passengers = Arrays.stream(passengerIds).mapToObj(id ->
+            {
             Entity passenger = new ArmorStand(net.minecraft.world.entity.EntityType.ARMOR_STAND, level);
             passenger.setId(id);
             return passenger;
-        }).toList();
+            }).toList();
         fakeNmsEntity.passengers = ImmutableList.copyOf(passengers);
         ClientboundSetPassengersPacket packet = new ClientboundSetPassengersPacket(fakeNmsEntity);
         fakeNmsEntity.passengers = ImmutableList.of();
         return packet;
     }
+
     @Override
-    public void sendInvisibleParticleCloud(int entityId, Location location, UUID uuid, List<Player> sendTo) {
+    public void sendInvisibleParticleCloud(int entityId, Location location, UUID uuid, List<Player> sendTo)
+    {
         net.minecraft.world.entity.EntityType<?> nmsEntityType = net.minecraft.world.entity.EntityType.AREA_EFFECT_CLOUD;
         double x = location.getX();
         double y = location.getY();
@@ -491,7 +531,8 @@ public class NMSPackets extends NMSCommon implements me.lojosho.hibiscuscommons.
         for (Player p : sendTo) sendPacket(p, bundlePacket);
     }
 
-    public void sendInvisibleArmorstand(int entityId, Location location, UUID uuid, byte mask, List<Player> sendTo) {
+    public void sendInvisibleArmorstand(int entityId, Location location, UUID uuid, byte mask, List<Player> sendTo)
+    {
         net.minecraft.world.entity.EntityType<?> nmsEntityType = net.minecraft.world.entity.EntityType.ARMOR_STAND;
         double x = location.getX();
         double y = location.getY();
@@ -511,7 +552,8 @@ public class NMSPackets extends NMSCommon implements me.lojosho.hibiscuscommons.
     }
 
     @Override
-    public void sendInvisibleEntity(int entityId, EntityType type, Location location, UUID uuid, List<Player> sendTo) {
+    public void sendInvisibleEntity(int entityId, EntityType type, Location location, UUID uuid, List<Player> sendTo)
+    {
         net.minecraft.world.entity.EntityType<?> nmsEntityType = CraftEntityType.bukkitToMinecraft(type);
         double x = location.getX();
         double y = location.getY();

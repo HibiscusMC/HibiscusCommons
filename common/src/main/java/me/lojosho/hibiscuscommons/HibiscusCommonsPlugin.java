@@ -4,10 +4,12 @@ import lombok.Getter;
 import me.lojosho.hibiscuscommons.hooks.Hooks;
 import me.lojosho.hibiscuscommons.listener.PlayerConnectionEvent;
 import me.lojosho.hibiscuscommons.nms.NMSHandlers;
+import me.lojosho.hibiscuscommons.task.FoliaTaskService;
 import me.lojosho.hibiscuscommons.util.ServerUtils;
 import org.jetbrains.annotations.ApiStatus;
 
-public final class HibiscusCommonsPlugin extends HibiscusPlugin {
+public final class HibiscusCommonsPlugin extends HibiscusPlugin
+{
 
     @Getter
     private static HibiscusCommonsPlugin instance;
@@ -16,18 +18,28 @@ public final class HibiscusCommonsPlugin extends HibiscusPlugin {
     @Getter
     private static boolean onFolia = false;
 
-    public HibiscusCommonsPlugin() {
+    @Getter
+    private static FoliaTaskService foliaTask;
+
+    public HibiscusCommonsPlugin()
+    {
         super(20726);
     }
 
     @Override
-    public void onStart() {
+    public void onStart()
+    {
         instance = this;
 
         // Do startup checks
         onPaper = checkPaper();
         onFolia = checkFolia();
-        if (onPaper) {
+
+        if (onFolia) {
+            getLogger().info("Detected Folia by Cássio Martim! Enabling Folia support...");
+
+            foliaTask = new FoliaTaskService(this);
+        } else if (onPaper) {
             getLogger().info("Detected Paper! Enabling Paper support...");
             //getServer().getPluginManager().registerEvents(new PaperPlayerGameListener(), this);
         } else {
@@ -49,27 +61,34 @@ public final class HibiscusCommonsPlugin extends HibiscusPlugin {
         Hooks.setup();
     }
 
+    @Override
+    public void onEnd()
+    {
+        super.onEnd();
+
+        if (onFolia && foliaTask != null)
+            foliaTask.cancelTasks();
+    }
+
     /**
      * Checks for Paper classes. Use {@link HibiscusCommonsPlugin#isOnPaper()} for cached value
+     *
      * @return True if plugin is running on a server with Paper; False if not
      */
     @ApiStatus.Internal
-    public boolean checkPaper() {
-        if (ServerUtils.hasClass("com.destroystokyo.paper.PaperConfig") || ServerUtils.hasClass("io.papermc.paper.configuration.Configuration")) {
-            return true;
-        }
-        return false;
+    public boolean checkPaper()
+    {
+        return ServerUtils.hasClass("com.destroystokyo.paper.PaperConfig") || ServerUtils.hasClass("io.papermc.paper.configuration.Configuration");
     }
 
     /**
      * Checks for the Folia classes. Use {@link HibiscusCommonsPlugin#isOnFolia()} for cached value.
+     *
      * @return True if plugin is running on a server with Folia; False if not
      */
     @ApiStatus.Internal
-    public boolean checkFolia() {
-        if (ServerUtils.hasClass("io.papermc.paper.threadedregions.RegionizedServer")) {
-            return true;
-        }
-        return false;
+    public boolean checkFolia()
+    {
+        return ServerUtils.hasClass("io.papermc.paper.threadedregions.RegionizedServer");
     }
 }
