@@ -39,8 +39,11 @@ public final class HibiscusCommonsPlugin extends HibiscusPlugin
             getLogger().info("Detected Folia by Cássio Martim! Enabling Folia support...");
 
             foliaTask = new FoliaTaskService(this);
+            onPaper = false; // Just confirming that onPaper will not be true if Folia is true
         } else if (onPaper) {
             getLogger().info("Detected Paper! Enabling Paper support...");
+
+            onFolia = false;
             //getServer().getPluginManager().registerEvents(new PaperPlayerGameListener(), this);
         } else {
             getLogger().warning("Paper was not detected! Some features may not work as expected.");

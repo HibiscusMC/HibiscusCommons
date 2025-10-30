@@ -2,9 +2,11 @@ package me.lojosho.hibiscuscommons.task;
 
 import io.papermc.paper.threadedregions.scheduler.AsyncScheduler;
 import io.papermc.paper.threadedregions.scheduler.GlobalRegionScheduler;
+import io.papermc.paper.threadedregions.scheduler.RegionScheduler;
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.plugin.Plugin;
 
 import java.util.Map;
@@ -23,6 +25,7 @@ public class FoliaTaskService
 
     private final AsyncScheduler asyncScheduler = Bukkit.getAsyncScheduler();
     private final GlobalRegionScheduler globalScheduler = Bukkit.getGlobalRegionScheduler();
+    private final RegionScheduler regionScheduler = Bukkit.getRegionScheduler();
 
     private int register(ScheduledTask task)
     {
@@ -35,6 +38,28 @@ public class FoliaTaskService
     {
         tasks.values().forEach(ScheduledTask::cancel);
         tasks.clear();
+    }
+
+    public void runRegionNow(Location location, Runnable runnable)
+    {
+        if (location == null || location.getWorld() == null) return;
+        regionScheduler.execute(plugin, location, runnable);
+    }
+
+    public int runRegionDelayed(Location location, Runnable runnable, int delayTicks)
+    {
+        if (location == null || location.getWorld() == null) return -1;
+
+        ScheduledTask task = regionScheduler.runDelayed(plugin, location, scheduledTask -> runnable.run(), delayTicks);
+        return register(task);
+    }
+
+    public int runRegionRepeating(Location location, Runnable runnable, int delayTicks, int periodTicks)
+    {
+        if (location == null || location.getWorld() == null) return -1;
+
+        ScheduledTask task = regionScheduler.runAtFixedRate(plugin, location, scheduledTask -> runnable.run(), delayTicks, periodTicks);
+        return register(task);
     }
 
     public int scheduleAsyncRepeatingTask(Runnable runnable, int delayUntilFirst, int tickInterval)
