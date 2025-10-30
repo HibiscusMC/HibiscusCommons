@@ -2,9 +2,11 @@ package me.lojosho.hibiscuscommons.nms.v1_21_R5;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelPipeline;
+import me.lojosho.hibiscuscommons.HibiscusCommonsPlugin;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.Connection;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.alchemy.PotionContents;
 import net.minecraft.world.item.component.DyedItemColor;
 import org.bukkit.Bukkit;
@@ -21,6 +23,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class NMSUtils extends NMSCommon implements me.lojosho.hibiscuscommons.nms.NMSUtils {
 
@@ -64,12 +69,42 @@ public class NMSUtils extends NMSCommon implements me.lojosho.hibiscuscommons.nm
     }
 
     private net.minecraft.world.entity.Entity getNMSEntity(int entityId) {
-        for (ServerLevel world : ((CraftServer) Bukkit.getServer()).getHandle().getServer().getAllLevels()) {
-            net.minecraft.world.entity.Entity entity = world.getEntity(entityId);
-            if (entity == null) continue;
-            return entity;
+        if (HibiscusCommonsPlugin.isOnFolia()) {
+            // No Folia, precisamos executar a busca na thread correta usando GlobalRegionScheduler
+            AtomicReference<Entity> result = new AtomicReference<>();
+            CountDownLatch latch = new CountDownLatch(1);
+            
+            HibiscusCommonsPlugin.getFoliaTask().runSync(() -> {
+                try {
+                    for (ServerLevel world : ((CraftServer) Bukkit.getServer()).getHandle().getServer().getAllLevels()) {
+                        Entity entity = world.getEntity(entityId);
+                        if (entity != null) {
+                            result.set(entity);
+                            break;
+                        }
+                    }
+                } finally {
+                    latch.countDown();
+                }
+            });
+            
+            try {
+                // Aguarda até 100ms para a operação completar
+                latch.await(100, TimeUnit.MILLISECONDS);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+            
+            return result.get();
+        } else {
+            // Paper ou Spigot - execução normal
+            for (ServerLevel world : ((CraftServer) Bukkit.getServer()).getHandle().getServer().getAllLevels()) {
+                Entity entity = world.getEntity(entityId);
+                if (entity == null) continue;
+                return entity;
+            }
+            return null;
         }
-        return null;
     }
 
     @Override

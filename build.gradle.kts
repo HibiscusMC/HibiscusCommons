@@ -197,6 +197,7 @@ bukkit {
     main = "me.lojosho.hibiscuscommons.HibiscusCommonsPlugin"
     apiVersion = "1.20"
     authors = listOf("LoJoSho")
+    foliaSupported = true
     softDepend = listOf(
         "ModelEngine",
         "Oraxen",
