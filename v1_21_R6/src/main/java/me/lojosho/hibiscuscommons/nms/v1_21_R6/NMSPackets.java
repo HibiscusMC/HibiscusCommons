@@ -1,10 +1,11 @@
 package me.lojosho.hibiscuscommons.nms.v1_21_R6;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.*;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
+import com.mojang.authlib.properties.PropertyMap;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.JsonOps;
 import io.papermc.paper.adventure.PaperAdventure;
@@ -96,8 +97,14 @@ public class NMSPackets extends NMSCommon implements me.lojosho.hibiscuscommons.
         if (name.length() > 15) name = name.substring(0, 15);
         Property property = ((CraftPlayer) skinnedPlayer).getProfile().properties().get("textures").stream().findAny().orElse(null);
 
-        GameProfile profile = new GameProfile(uuid, name);
-        if (property != null) profile.properties().put("textures", property);
+        final Multimap<String, Property> multimaps = MultimapBuilder.hashKeys().arrayListValues().build(((CraftPlayer) skinnedPlayer).getProfile().properties());
+        if (property != null) {
+            multimaps.removeAll("textures");
+            multimaps.put("textures", property);
+        }
+
+        PropertyMap map = new PropertyMap(multimaps);
+        GameProfile profile = new GameProfile(uuid, name, map);
 
         Component component = AdventureUtils.MINI_MESSAGE.deserialize(name);
         net.minecraft.network.chat.Component nmsComponent = HibiscusCommonsPlugin.isOnPaper() ? PaperAdventure.asVanilla(component) : net.minecraft.network.chat.Component.literal(name);

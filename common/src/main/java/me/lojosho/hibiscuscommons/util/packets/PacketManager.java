@@ -2,6 +2,7 @@ package me.lojosho.hibiscuscommons.util.packets;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
+import me.lojosho.hibiscuscommons.nms.MinecraftVersion;
 import me.lojosho.hibiscuscommons.nms.NMSHandlers;
 import me.lojosho.hibiscuscommons.util.MessagesUtil;
 import org.bukkit.GameMode;
@@ -169,6 +170,26 @@ public class PacketManager {
             List<Player> sendTo
     ) {
         NMSHandlers.getHandler().getPacketHandler().sendEquipmentSlotUpdate(entityId, equipment, sendTo);
+    }
+
+    /**
+     *
+     * @param location Location of the fake player.
+     * @param uuid UUID of the fake player. Should be random.
+     * @param entityId The entityID that the entity will take on.
+     * @param sendTo Who should it send the packet to?
+     */
+    public static void sendFakePlayerSpawnPacket(
+            final @NotNull Location location,
+            final UUID uuid,
+            final int entityId,
+            final @NotNull List<Player> sendTo
+    ) {
+        sendEntitySpawnPacket(location, entityId, EntityType.PLAYER, uuid, sendTo);
+        /* Data structure is different for Mannequins
+        if (NMSHandlers.getVersion().isLower(MinecraftVersion.v1_21_9)) sendEntitySpawnPacket(location, entityId, EntityType.PLAYER, uuid, sendTo);
+        else sendEntitySpawnPacket(location, entityId, EntityType.MANNEQUIN, uuid, sendTo);
+         */
     }
 
     private static List<Player> getNearbyPlayers(Location location, int distance) {
