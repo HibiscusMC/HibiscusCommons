@@ -140,7 +140,7 @@ tasks {
     runServer {
         dependsOn(shadowJar)
         dependsOn(jar)
-        minecraftVersion("1.21.7")
+        minecraftVersion("1.21.8")
 
         downloadPlugins {
             hangar("PlaceholderAPI", "2.11.6")
