@@ -11,7 +11,7 @@ plugins {
 }
 
 group = "me.lojosho"
-version = "0.8.1${getGitCommitHash()}"
+version = "0.8.2${getGitCommitHash()}"
 
 allprojects {
     apply(plugin = "java")
@@ -108,10 +108,6 @@ allprojects {
         testAnnotationProcessor("org.projectlombok:lombok:1.18.36")
 
         // Spigot Auto Loader Libraries
-        compileOnly("net.kyori:adventure-api:4.24.0")
-        compileOnly("net.kyori:adventure-text-minimessage:4.24.0")
-        compileOnly("net.kyori:adventure-text-serializer-gson:4.24.0")
-        compileOnly("net.kyori:adventure-platform-bukkit:4.4.1")
         compileOnly("org.apache.commons:commons-lang3:3.17.0")
 
         // Shaded Dependencies
@@ -225,10 +221,12 @@ bukkit {
     )
 
     libraries = listOf(
+        /*
         "net.kyori:adventure-api:4.24.0",
         "net.kyori:adventure-text-minimessage:4.24.0",
         "net.kyori:adventure-text-serializer-gson:4.24.0",
         "net.kyori:adventure-platform-bukkit:4.4.1",
+         */
         "org.apache.commons:commons-lang3:3.17.0"
         //"org.spongepowered:configurate-yaml:4.2.0-SNAPSHOT" // Readd when 4.2.0 releases
     )
