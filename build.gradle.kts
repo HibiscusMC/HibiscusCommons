@@ -129,6 +129,7 @@ dependencies {
     implementation(project(path = ":v1_21_R4", configuration = "reobf"))
     implementation(project(path = ":v1_21_R5", configuration = "reobf"))
     implementation(project(path = ":v1_21_R6", configuration = "reobf"))
+    implementation(project(path = ":v1_21_R7", configuration = "reobf"))
 }
 
 tasks {
@@ -163,6 +164,7 @@ tasks {
         dependsOn(":v1_21_R4:reobfJar")
         dependsOn(":v1_21_R5:reobfJar")
         dependsOn(":v1_21_R6:reobfJar")
+        dependsOn(":v1_21_R7:reobfJar")
         mergeServiceFiles()
 
         relocate("org.bstats", "me.lojosho.shaded.bstats")
