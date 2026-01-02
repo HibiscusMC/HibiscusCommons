@@ -1,4 +1,4 @@
-package me.lojosho.hibiscuscommons.nms.v1_21_R6;
+package me.lojosho.hibiscuscommons.nms.v1_21_R7;
 
 import com.google.common.collect.*;
 import com.google.gson.JsonArray;
@@ -23,7 +23,7 @@ import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.*;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -396,7 +396,7 @@ public class NMSPackets extends NMSCommon implements me.lojosho.hibiscuscommons.
     }
 
     public void sendToastPacket(Player player, ItemStack icon, Component title, Component description) {
-        final var key = ResourceLocation.fromNamespaceAndPath("hibiscuscommons", UUID.randomUUID().toString());
+        final Identifier key = Identifier.fromNamespaceAndPath("hibiscuscommons", UUID.randomUUID().toString());
 
         JsonObject json = new JsonObject();
 

@@ -1,4 +1,4 @@
-package me.lojosho.hibiscuscommons.nms.v1_21_R6;
+package me.lojosho.hibiscuscommons.nms.v1_21_R7;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelPipeline;

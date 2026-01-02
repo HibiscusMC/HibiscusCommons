@@ -1,4 +1,4 @@
-package me.lojosho.hibiscuscommons.nms.v1_21_R6;
+package me.lojosho.hibiscuscommons.nms.v1_21_R7;
 
 import com.mojang.datafixers.util.Pair;
 import io.netty.channel.ChannelDuplexHandler;
