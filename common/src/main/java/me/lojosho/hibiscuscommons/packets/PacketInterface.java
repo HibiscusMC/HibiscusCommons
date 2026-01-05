@@ -1,6 +1,6 @@
 package me.lojosho.hibiscuscommons.packets;
 
-import me.lojosho.hibiscuscommons.packets.wrapper.*;
+import me.lojosho.hibiscuscommons.packets.data.*;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 

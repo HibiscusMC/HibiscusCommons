@@ -1,4 +1,4 @@
-package me.lojosho.hibiscuscommons.packets.wrapper;
+package me.lojosho.hibiscuscommons.packets.data;
 
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;

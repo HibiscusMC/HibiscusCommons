@@ -7,7 +7,7 @@ import io.netty.channel.ChannelPromise;
 import lombok.Getter;
 import me.lojosho.hibiscuscommons.nms.NMSHandlers;
 import me.lojosho.hibiscuscommons.packets.PacketAction;
-import me.lojosho.hibiscuscommons.packets.wrapper.*;
+import me.lojosho.hibiscuscommons.packets.data.*;
 import me.lojosho.hibiscuscommons.plugins.SubPlugins;
 import me.lojosho.hibiscuscommons.util.MessagesUtil;
 import net.minecraft.core.NonNullList;
