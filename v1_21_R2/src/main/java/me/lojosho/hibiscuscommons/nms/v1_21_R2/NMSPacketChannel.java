@@ -169,7 +169,7 @@ public class NMSPacketChannel extends ChannelDuplexHandler {
 
         if (action.get() == PacketAction.CANCELLED) return null;
         if (action.get() == PacketAction.NOTHING) return packet;
-        return (Packet<?>) NMSHandlers.getHandler().getPacketHandler().createMountPacket(ownerId, passengers.stream().mapToInt(Integer::intValue).toArray());
+        return (Packet<?>) NMSHandlers.getHandler().getPacketBuilder().buildEntityMountPacket(ownerId, passengers.stream().mapToInt(Integer::intValue).toArray()).toNativePacket();
     }
 
     private Packet<?> handleScaleChange(@NotNull ClientboundUpdateAttributesPacket packet) {

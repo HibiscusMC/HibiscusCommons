@@ -1,5 +1,6 @@
 package me.lojosho.hibiscuscommons.nms;
 
+import net.kyori.adventure.text.Component;
 import org.bukkit.Color;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -22,5 +23,7 @@ public interface NMSUtils {
     default void handleChannelOpen(@NotNull Player player) {
 
     }
+
+    void sendToastAdvancement(Player player, ItemStack icon, Component title, Component description);
 
 }

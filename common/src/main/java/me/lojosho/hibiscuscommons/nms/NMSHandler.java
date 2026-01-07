@@ -8,14 +8,17 @@ public class NMSHandler {
     @Getter
     private NMSUtils utilHandler;
     @Getter
-    private NMSPackets packetHandler;
+    private NMSPacketBuilder packetBuilder;
+    @Getter
+    private NMSPacketSender packetSender;
 
-    public NMSHandler(NMSUtils utilHandler, NMSPackets packetHandler) {
+    public NMSHandler(NMSUtils utilHandler, NMSPacketBuilder packetBuilder, NMSPacketSender packetSender) {
         if (instance != null) {
             throw new IllegalStateException("NMSHandler is already initialized.");
         }
         this.utilHandler = utilHandler;
-        this.packetHandler = packetHandler;
+        this.packetBuilder = packetBuilder;
+        this.packetSender = packetSender;
 
         instance = this;
     }
