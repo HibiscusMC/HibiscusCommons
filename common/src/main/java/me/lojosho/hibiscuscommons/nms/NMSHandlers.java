@@ -6,7 +6,6 @@ import org.bukkit.Bukkit;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 public class NMSHandlers {
@@ -87,8 +86,9 @@ public class NMSHandlers {
 
             try {
                 NMSUtils utilHandler = (NMSUtils) Class.forName("me.lojosho.hibiscuscommons.nms." + packageVersion.internalReference() + ".NMSUtils").getConstructor().newInstance();
-                NMSPackets packetHandler = (NMSPackets) Class.forName("me.lojosho.hibiscuscommons.nms." + packageVersion.internalReference() + ".NMSPackets").getConstructor().newInstance();
-                handler = new NMSHandler(utilHandler, packetHandler);
+                NMSPacketBuilder packetHandler = (NMSPacketBuilder) Class.forName("me.lojosho.hibiscuscommons.nms." + packageVersion.internalReference() + ".packets.NMSPackets").getConstructor().newInstance();
+                NMSPacketSender packetSender = (NMSPacketSender) Class.forName("me.lojosho.hibiscuscommons.nms." + packageVersion.internalReference() + ".packets.NMSPacketSender").getConstructor().newInstance();
+                handler = new NMSHandler(utilHandler, packetHandler, packetSender);
                 return;
             } catch (ClassNotFoundException | InvocationTargetException | InstantiationException |
                      IllegalAccessException | NoSuchMethodException e) {

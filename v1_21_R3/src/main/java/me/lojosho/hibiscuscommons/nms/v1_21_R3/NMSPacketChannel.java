@@ -7,7 +7,7 @@ import io.netty.channel.ChannelPromise;
 import lombok.Getter;
 import me.lojosho.hibiscuscommons.nms.NMSHandlers;
 import me.lojosho.hibiscuscommons.packets.PacketAction;
-import me.lojosho.hibiscuscommons.packets.wrapper.*;
+import me.lojosho.hibiscuscommons.packets.data.*;
 import me.lojosho.hibiscuscommons.plugins.SubPlugins;
 import me.lojosho.hibiscuscommons.util.MessagesUtil;
 import net.minecraft.core.NonNullList;
@@ -169,7 +169,7 @@ public class NMSPacketChannel extends ChannelDuplexHandler {
 
         if (action.get() == PacketAction.CANCELLED) return null;
         if (action.get() == PacketAction.NOTHING) return packet;
-        return (Packet<?>) NMSHandlers.getHandler().getPacketHandler().createMountPacket(ownerId, passengers.stream().mapToInt(Integer::intValue).toArray());
+        return (Packet<?>) NMSHandlers.getHandler().getPacketBuilder().buildEntityMountPacket(ownerId, passengers.stream().mapToInt(Integer::intValue).toArray()).toNativePacket();
     }
 
     private Packet<?> handleScaleChange(@NotNull ClientboundUpdateAttributesPacket packet) {
