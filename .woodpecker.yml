@@ -33,7 +33,7 @@ steps:
     environment:
       UPLOAD_URL:
         from_secret: UPLOAD_URL
-      BASIC_USER: "hmcjs"
+      BASIC_USER: "hibiscuscommons"
       BASIC_PASS:
         from_secret: UPLOAD_PASS
     commands:
