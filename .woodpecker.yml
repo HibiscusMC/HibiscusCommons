@@ -55,7 +55,7 @@ steps:
         
         JAR_DIR="$(dirname "$JAR")"
         JAR_BASE="$(basename "$JAR" .jar)"
-        JAR_WITH_HASH="$JAR_DIR/$JAR_BASE.$LASTCOMMITHASH.jar"
+        JAR_WITH_HASH="$JAR_DIR/$JAR_BASE-$LASTCOMMITHASH.jar"
         cp "$JAR" "$JAR_WITH_HASH"
 
         # generate changelog
@@ -71,7 +71,7 @@ steps:
         printf '\n\n'
         echo "Prepared development build upload:"
         echo 
-        echo "New version: $VERSION.$LASTCOMMITHASH"
+        echo "New version: $VERSION-$LASTCOMMITHASH"
         echo "Built JAR: $JAR"
         echo "JAR with hash: $JAR_WITH_HASH"
         echo
@@ -86,6 +86,6 @@ steps:
 
         curl -u "$BASIC_USER:$BASIC_PASS" \
         -X POST "$UPLOAD_URL" \
-        -F "version=$VERSION.$LASTCOMMITHASH" \
+        -F "version=$VERSION-$LASTCOMMITHASH" \
         -F "changelog=@changelog.txt;type=text/plain" \
         -F "jar=@$JAR_WITH_HASH;type=application/java-archive"
