@@ -38,6 +38,7 @@ public class ItemSerializer implements TypeSerializer<ItemStack> {
     private static final String MODEL_DATA = "model-data";
     private static final String MODEL_ID = "model-id";
     private static final String NBT_TAGS = "nbt-tag";
+    private static final String REMOVE_EXISTING_ENCHANTS = "remove-enchants";
     private static final String ENCHANTS = "enchants";
     private static final String ITEM_FLAGS = "item-flags";
     private static final String TEXTURE = "texture";
@@ -63,6 +64,7 @@ public class ItemSerializer implements TypeSerializer<ItemStack> {
         final ConfigurationNode modelDataNode = source.node(MODEL_DATA);
         final ConfigurationNode modelIdNode = source.node(MODEL_ID);
         final ConfigurationNode nbtNode = source.node(NBT_TAGS);
+        final ConfigurationNode removeEnchantNode = source.node(REMOVE_EXISTING_ENCHANTS);
         final ConfigurationNode enchantsNode = source.node(ENCHANTS);
         final ConfigurationNode itemFlagsNode = source.node(ITEM_FLAGS);
         final ConfigurationNode textureNode = source.node(TEXTURE);
@@ -112,6 +114,11 @@ public class ItemSerializer implements TypeSerializer<ItemStack> {
             for (ConfigurationNode nbtNodes : nbtNode.childrenMap().values()) {
                 itemMeta.getPersistentDataContainer().set(NamespacedKey.minecraft(nbtNodes.key().toString()), PersistentDataType.STRING, nbtNodes.getString());
             }
+        }
+
+        if (!removeEnchantNode.virtual()) {
+            boolean shouldRemove = removeEnchantNode.getBoolean(false);
+            if (shouldRemove) itemBuilder.removeAllEnchantments();
         }
 
         if (!enchantsNode.virtual()) {

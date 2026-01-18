@@ -155,6 +155,11 @@ public class ItemBuilder {
         return this;
     }
 
+    public ItemBuilder removeAllEnchantments() {
+        itemMeta.removeEnchantments();
+        return this;
+    }
+
     public @NotNull ItemStack build() {
         itemStack.setItemMeta(itemMeta);
         return itemStack;
