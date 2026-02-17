@@ -24,7 +24,7 @@ public class HookOraxen extends Hook {
     public ItemStack getItem(@NotNull String itemId) {
         ItemBuilder builder = OraxenItems.getItemById(itemId);
         if (builder == null) return null;
-        return builder.build();
+        return builder.build().clone(); // Prevent us from modifying the original item
     }
 
     @Override
