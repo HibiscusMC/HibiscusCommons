@@ -11,6 +11,7 @@ import org.bukkit.Material;
 import org.bukkit.event.EventHandler;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 
 /**
  * A hook that integrates the plugin {@link com.nexomc.nexo.NexoPlugin NexoPlugin} to provide custom items
@@ -31,8 +32,7 @@ public class HookNexo extends Hook {
     }
 
     @Override
-    public String getItemString(ItemStack itemStack) {
-        if (itemStack == null) return null;
+    public String getItemString(@NonNull ItemStack itemStack) {
         if (!itemStack.hasItemMeta()) return null;
         return NexoItems.idFromItem(itemStack);
     }

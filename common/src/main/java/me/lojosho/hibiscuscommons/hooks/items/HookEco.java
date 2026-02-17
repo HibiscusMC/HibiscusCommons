@@ -5,6 +5,7 @@ import me.lojosho.hibiscuscommons.hooks.Hook;
 import me.lojosho.hibiscuscommons.hooks.HookFlag;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 
 public class HookEco extends Hook {
     public HookEco() {
@@ -18,8 +19,7 @@ public class HookEco extends Hook {
     }
 
     @Override
-    public String getItemString(ItemStack itemStack) {
-        if (itemStack == null) return null;
+    public String getItemString(@NonNull ItemStack itemStack) {
         if (!itemStack.hasItemMeta()) return null;
         if (!Items.isCustomItem(itemStack)) return null;
         // This should work? I'm not sure if it will return the correct key

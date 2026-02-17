@@ -6,6 +6,7 @@ import me.lojosho.hibiscuscommons.hooks.Hook;
 import me.lojosho.hibiscuscommons.hooks.HookFlag;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 
 /**
  * A hook that integrates the plugin {@link io.th0rgal.oraxen.OraxenPlugin OraxenPlugin} to provide custom items
@@ -28,8 +29,7 @@ public class HookOraxen extends Hook {
     }
 
     @Override
-    public String getItemString(ItemStack itemStack) {
-        if (itemStack == null) return null;
+    public String getItemString(@NonNull ItemStack itemStack) {
         if (!itemStack.hasItemMeta()) return null;
         if (!OraxenItems.exists(itemStack)) return null;
         return OraxenItems.getIdByItem(itemStack);

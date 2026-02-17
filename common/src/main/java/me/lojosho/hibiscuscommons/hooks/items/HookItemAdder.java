@@ -15,6 +15,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 
 /**
  * A hook that integrates the plugin {@link dev.lone.itemsadder.api.ItemsAdder ItemsAdder} to provide custom items
@@ -64,8 +65,7 @@ public class HookItemAdder extends Hook {
         Bukkit.getPluginManager().callEvent(newEvent);
     }
 
-    public String getItemString(ItemStack itemStack) {
-        if (itemStack == null) return null;
+    public String getItemString(@NonNull ItemStack itemStack) {
         if (!itemStack.hasItemMeta()) return null;
         if (CustomStack.byItemStack(itemStack) == null) return null;
         return CustomStack.byItemStack(itemStack).getId();
