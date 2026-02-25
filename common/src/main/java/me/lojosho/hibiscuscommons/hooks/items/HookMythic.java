@@ -7,7 +7,6 @@ import me.lojosho.hibiscuscommons.hooks.HookFlag;
 import org.bukkit.entity.Entity;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
-import org.jspecify.annotations.NonNull;
 
 /**
  * A hook that integrates the plugin {@link MythicBukkit MythicBukkit} to provide custom items
@@ -24,23 +23,15 @@ public class HookMythic extends Hook {
      */
     @Override
     public ItemStack getItem(@NotNull String itemId) {
-        try (MythicBukkit inst = MythicBukkit.inst()) {
-            return inst.getItemManager().getItemStack(itemId);
-        } catch (Exception e) {
-            return null;
-        }
+        return MythicBukkit.inst().getItemManager().getItemStack(itemId);
     }
 
     @Override
-    public String getEntityString(@NonNull Entity entity) {
-        try (MythicBukkit inst = MythicBukkit.inst()) {
-            ActiveMob mythicMob = inst.getMobManager().getActiveMob(entity.getUniqueId()).orElse(null);
-            if(mythicMob != null){
-                return mythicMob.getMobType();
-            }
-            return null;
-        } catch (Exception e) {
-            return null;
+    public String getEntityString(Entity entity) {
+        ActiveMob mythicMob = MythicBukkit.inst().getMobManager().getActiveMob(entity.getUniqueId()).orElse(null);
+        if(mythicMob != null){
+            return mythicMob.getMobType();
         }
+        return null;
     }
 }
