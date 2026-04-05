@@ -6,7 +6,6 @@ import me.lojosho.hibiscuscommons.nms.MinecraftVersion;
 import me.lojosho.hibiscuscommons.nms.NMSHandlers;
 import me.lojosho.hibiscuscommons.util.*;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.apache.commons.lang3.EnumUtils;
 import org.bukkit.*;
 import org.bukkit.inventory.ItemFlag;
@@ -121,7 +120,7 @@ public class ItemSerializer implements TypeSerializer<ItemStack> {
                     if (existingLore != null) newLore.addAll(existingLore);
                     itemBuilder.lore(newLore);
                 }
-                case APPEND_BUTTOM -> {
+                case APPEND_BOTTOM -> {
                     List<Component> newLore = new ArrayList<>();
                     if (existingLore != null) newLore.addAll(existingLore);
                     newLore.addAll(lore);
@@ -231,7 +230,7 @@ public class ItemSerializer implements TypeSerializer<ItemStack> {
     public enum LoreAppendMode {
         OVERRIDE,
         APPEND_TOP,
-        APPEND_BUTTOM
+        APPEND_BOTTOM
     }
 }
 
