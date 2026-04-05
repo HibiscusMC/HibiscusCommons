@@ -3,9 +3,9 @@ import net.minecrell.pluginyml.bukkit.BukkitPluginDescription
 plugins {
     id("java")
     id("maven-publish")
-    id("com.gradleup.shadow") version "8.3.4"
+    id("com.gradleup.shadow") version "9.4.1"
     id("net.minecrell.plugin-yml.bukkit") version "0.6.0"
-    id("xyz.jpenilla.run-paper") version "2.3.1"
+    id("xyz.jpenilla.run-paper") version "3.0.2"
     id("io.papermc.paperweight.userdev") apply false
     //id("io.papermc.hangar-publish-plugin") version "0.1.1"
 }
@@ -102,10 +102,10 @@ allprojects {
         compileOnly("net.momirealms:craft-engine-bukkit:0.0.49")
 
         // Lombok <3
-        annotationProcessor("org.projectlombok:lombok:1.18.36")
-        compileOnly("org.projectlombok:lombok:1.18.36")
-        testCompileOnly("org.projectlombok:lombok:1.18.36")
-        testAnnotationProcessor("org.projectlombok:lombok:1.18.36")
+        annotationProcessor("org.projectlombok:lombok:1.18.44")
+        compileOnly("org.projectlombok:lombok:1.18.44")
+        testCompileOnly("org.projectlombok:lombok:1.18.44")
+        testAnnotationProcessor("org.projectlombok:lombok:1.18.44")
 
         // Spigot Auto Loader Libraries
         compileOnly("org.apache.commons:commons-lang3:3.17.0")
@@ -130,6 +130,11 @@ dependencies {
     implementation(project(path = ":v1_21_R5", configuration = "reobf"))
     implementation(project(path = ":v1_21_R6", configuration = "reobf"))
     implementation(project(path = ":v1_21_R7", configuration = "reobf"))
+    implementation(project(path = ":v26_1_R1"))
+}
+
+java {
+    disableAutoTargetJvm()
 }
 
 tasks {
@@ -165,6 +170,7 @@ tasks {
         dependsOn(":v1_21_R5:reobfJar")
         dependsOn(":v1_21_R6:reobfJar")
         dependsOn(":v1_21_R7:reobfJar")
+        dependsOn(":v26_1_R1:build")
         mergeServiceFiles()
 
         relocate("org.bstats", "me.lojosho.shaded.bstats")
@@ -190,7 +196,6 @@ tasks {
 }
 
 // Handles generating the plugin yml
-
 bukkit {
     load = BukkitPluginDescription.PluginLoadOrder.POSTWORLD
     main = "me.lojosho.hibiscuscommons.HibiscusCommonsPlugin"
@@ -219,38 +224,10 @@ bukkit {
     loadBefore = listOf(
         "Cosmin" // Fixes an issue with Cosmin loading before and taking /cosmetic, when messing with what we do.
     )
-
     libraries = listOf(
-        /*
-        "net.kyori:adventure-api:4.24.0",
-        "net.kyori:adventure-text-minimessage:4.24.0",
-        "net.kyori:adventure-text-serializer-gson:4.24.0",
-        "net.kyori:adventure-platform-bukkit:4.4.1",
-         */
         "org.apache.commons:commons-lang3:3.17.0"
-        //"org.spongepowered:configurate-yaml:4.2.0-SNAPSHOT" // Readd when 4.2.0 releases
     )
 }
-/*
-hangarPublish {
-    publications.register("plugin") {
-        version.set(project.version as String)
-        channel.set("Release")
-        if (project.version.toString().contains("-")) channel.set("Snapshot") // If its a dev build, it will have -dev on it
-        id.set("HibiscusCommons")
-        apiKey.set(System.getenv("HANGAR_API_TOKEN"))
-        platforms {
-            register(Platforms.PAPER) {
-                jar.set(tasks.jar.flatMap { it.archiveFile })
-
-                val versions: List<String> = listOf("1.18.2-1.20.4")
-                platformVersions.set(versions)
-            }
-        }
-    }
-}
-*/
-// Publishing stuff below here to a remote maven repo
 
 publishing {
     val publishData = PublishData(project)

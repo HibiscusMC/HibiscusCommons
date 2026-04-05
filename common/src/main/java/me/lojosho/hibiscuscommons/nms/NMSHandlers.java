@@ -24,6 +24,7 @@ public class NMSHandlers {
         put(MinecraftVersion.v1_21_9, new MinecraftVersionInformation("v1_21_R6", false));
         put(MinecraftVersion.v1_21_10, new MinecraftVersionInformation("v1_21_R6", true));
         put(MinecraftVersion.v1_21_11, new MinecraftVersionInformation("v1_21_R7", true));
+        put(MinecraftVersion.v26_1_1, new MinecraftVersionInformation("v26_1_R1", true));
     }};
 
     private static NMSHandler handler;
