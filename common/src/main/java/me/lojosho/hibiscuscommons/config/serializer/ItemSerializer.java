@@ -102,7 +102,7 @@ public class ItemSerializer implements TypeSerializer<ItemStack> {
         LoreAppendMode loreAppendMode = LoreAppendMode.OVERRIDE;
         if (!loreAppendNode.virtual()) {
             try {
-                loreAppendMode = LoreAppendMode.valueOf(loreAppendNode.getString());
+                loreAppendMode = LoreAppendMode.valueOf(loreAppendNode.getString().toUpperCase());
             } catch (IllegalArgumentException e) {
                 MessagesUtil.sendDebugMessages("Lore Append Mode is currently set to an invalid option! Defaulting to Override! See valid option here: " + Arrays.toString(LoreAppendMode.values()));
                 loreAppendMode = LoreAppendMode.OVERRIDE; // Set it back to override
