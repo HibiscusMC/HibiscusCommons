@@ -101,7 +101,12 @@ public class ItemBuilder {
         return this;
     }
 
-    public ItemBuilder setQuantity(int number) {
+    public ItemBuilder lore(@NotNull List<Component> lore) {
+        itemMeta.lore(lore);
+        return this;
+    }
+
+    public ItemBuilder quantity(int number) {
         itemStack.setAmount(number);
         return this;
     }

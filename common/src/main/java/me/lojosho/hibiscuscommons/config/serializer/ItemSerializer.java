@@ -5,6 +5,8 @@ import me.lojosho.hibiscuscommons.hooks.Hooks;
 import me.lojosho.hibiscuscommons.nms.MinecraftVersion;
 import me.lojosho.hibiscuscommons.nms.NMSHandlers;
 import me.lojosho.hibiscuscommons.util.*;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.apache.commons.lang3.EnumUtils;
 import org.bukkit.*;
 import org.bukkit.inventory.ItemFlag;
@@ -21,9 +23,8 @@ import org.spongepowered.configurate.serialize.TypeSerializer;
 
 import java.lang.reflect.Type;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class ItemSerializer implements TypeSerializer<ItemStack> {
 
@@ -33,6 +34,7 @@ public class ItemSerializer implements TypeSerializer<ItemStack> {
     private static final String NAME = "name";
     private static final String UNBREAKABLE = "unbreakable";
     private static final String GLOWING = "glowing";
+    private static final String LORE_APPEND = "lore-append";
     private static final String LORE = "lore";
     private static final String TOOLTIP_STYLE = "tooltip-style";
     private static final String MODEL_DATA = "model-data";
@@ -59,6 +61,7 @@ public class ItemSerializer implements TypeSerializer<ItemStack> {
         final ConfigurationNode nameNode = source.node(NAME);
         final ConfigurationNode unbreakableNode = source.node(UNBREAKABLE);
         final ConfigurationNode glowingNode = source.node(GLOWING);
+        final ConfigurationNode loreAppendNode = source.node(LORE_APPEND);
         final ConfigurationNode loreNode = source.node(LORE);
         final ConfigurationNode toolTipStyleNode = source.node(TOOLTIP_STYLE);
         final ConfigurationNode modelDataNode = source.node(MODEL_DATA);
@@ -97,8 +100,34 @@ public class ItemSerializer implements TypeSerializer<ItemStack> {
         if (!glowingNode.virtual()) {
             itemBuilder.setGlowing(true);
         }
+        LoreAppendMode loreAppendMode = LoreAppendMode.OVERRIDE;
+        if (!loreAppendNode.virtual()) {
+            try {
+                loreAppendMode = LoreAppendMode.valueOf(loreAppendNode.getString());
+            } catch (IllegalArgumentException e) {
+                MessagesUtil.sendDebugMessages("Lore Append Mode is currently set to an invalid option! Defaulting to Override! See valid option here: " + Arrays.toString(LoreAppendMode.values()));
+                loreAppendMode = LoreAppendMode.OVERRIDE; // Set it back to override
+            }
+        }
         if (!loreNode.virtual()) {
-            itemBuilder.setLore(loreNode.getList(String.class, new ArrayList<>()));
+            final List<Component> existingLore = itemMeta.lore();
+            final List<Component> lore = loreNode.getList(String.class, new ArrayList<>()).stream().map(AdventureUtils.MINI_MESSAGE::deserialize).collect(Collectors.toList());
+            switch (loreAppendMode) {
+                case OVERRIDE -> {
+                    itemBuilder.lore(lore);
+                }
+                case APPEND_TOP -> {
+                    List<Component> newLore = new ArrayList<>(lore);
+                    if (existingLore != null) newLore.addAll(existingLore);
+                    itemBuilder.lore(newLore);
+                }
+                case APPEND_BUTTOM -> {
+                    List<Component> newLore = new ArrayList<>();
+                    if (existingLore != null) newLore.addAll(existingLore);
+                    newLore.addAll(lore);
+                    itemBuilder.lore(newLore);
+                }
+            }
         }
         if (!modelDataNode.virtual()) {
             itemBuilder.setCustomModelId(modelDataNode.getInt());
@@ -197,6 +226,12 @@ public class ItemSerializer implements TypeSerializer<ItemStack> {
     @Override
     public void serialize(final Type type, @Nullable final ItemStack obj, final ConfigurationNode node) throws SerializationException {
 
+    }
+
+    public enum LoreAppendMode {
+        OVERRIDE,
+        APPEND_TOP,
+        APPEND_BUTTOM
     }
 }
 
