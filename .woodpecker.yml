@@ -24,6 +24,7 @@ steps:
 
     commands:
       - mkdir -p /workspace/tmp
+      - apt-get update -q && apt-get install -y -q temurin-21-jdk
       - chmod +x ./gradlew
       - ./gradlew shadowJar --no-daemon --stacktrace
       - ./gradlew publish --no-daemon --stacktrace
