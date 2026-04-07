@@ -199,6 +199,7 @@ tasks {
 bukkit {
     load = BukkitPluginDescription.PluginLoadOrder.POSTWORLD
     main = "me.lojosho.hibiscuscommons.HibiscusCommonsPlugin"
+    foliaSupported = true
     apiVersion = "1.20"
     authors = listOf("LoJoSho")
     softDepend = listOf(

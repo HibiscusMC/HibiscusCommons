@@ -6,6 +6,7 @@ import com.mojang.serialization.JsonOps;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelPipeline;
 import me.lojosho.hibiscuscommons.HibiscusCommonsPlugin;
+import me.lojosho.hibiscuscommons.util.FoliaScheduler;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.minecraft.advancements.Advancement;
@@ -137,7 +138,7 @@ public class NMSUtils implements me.lojosho.hibiscuscommons.nms.NMSUtils {
         MinecraftServer.getServer().getAdvancements().tree().addAll(Set.of(advancementHolder));
         progress.getRemainingCriteria().forEach(criteria -> nmsPlayer.getAdvancements().award(advancementHolder, criteria));
 
-        Bukkit.getScheduler().runTaskLater(HibiscusCommonsPlugin.getInstance(), () -> {
+        FoliaScheduler.runEntityTaskLater(player, () -> {
             progress.getRemainingCriteria().forEach(criteria -> nmsPlayer.getAdvancements().revoke(advancementHolder, criteria));
             MinecraftServer.getServer().getAdvancements().tree().remove(Set.of(key));
 

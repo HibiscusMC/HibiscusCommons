@@ -30,7 +30,7 @@ public class EntityLookAtWrapper implements PacketWrapper {
     @Override
     public Object toNativePacket() {
         fakeNmsEntity.setId(entityId);
-        fakeNmsEntity.getBukkitEntity().teleport(location);
+        fakeNmsEntity.setPos(location.getX(), location.getY(), location.getZ());
         return new ClientboundPlayerLookAtPacket(EntityAnchorArgument.Anchor.EYES, fakeNmsEntity, EntityAnchorArgument.Anchor.EYES);
     }
 }
