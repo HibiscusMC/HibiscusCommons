@@ -7,11 +7,11 @@ import org.bukkit.Bukkit;
 import java.lang.reflect.InvocationTargetException;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.logging.Logger;
 
 public class NMSHandlers {
 
     private static final LinkedHashMap<MinecraftVersion, MinecraftVersionInformation> VERSION_MAP = new LinkedHashMap <>() {{
-        put(MinecraftVersion.v1_20_6, new MinecraftVersionInformation("v1_20_R4", true));
         put(MinecraftVersion.v1_21, new MinecraftVersionInformation("v1_21_R1", false)); // 1.20 is not supported; was imminently bumped to 1.21.1
         put(MinecraftVersion.v1_21_1, new MinecraftVersionInformation("v1_21_R1", true));
         put(MinecraftVersion.v1_21_2, new MinecraftVersionInformation("v1_21_R2", false)); // 1.20.2 is not supported; was imminently bumped to 1.21.3
@@ -44,21 +44,23 @@ public class NMSHandlers {
     public static void setup() throws RuntimeException {
         if (handler != null) return;
         final String bukkitVersion = Bukkit.getServer().getBukkitVersion();
-        String minecraftVersion = bukkitVersion.substring(0, bukkitVersion.indexOf('-'));
+        String minecraftVersion = getMinecraftVersion(bukkitVersion);
         MinecraftVersion enumVersion = MinecraftVersion.fromVersionString(minecraftVersion);
         MinecraftVersionInformation packageVersion = VERSION_MAP.get(enumVersion);
 
+        final Logger logger = HibiscusCommonsPlugin.getInstance().getLogger();
+
         if (packageVersion == null) {
-            HibiscusCommonsPlugin.getInstance().getLogger().severe("An error occurred while trying to detect the version of the server.");
-            HibiscusCommonsPlugin.getInstance().getLogger().severe(" ");
-            HibiscusCommonsPlugin.getInstance().getLogger().severe("Detected Bukkit Version: " + bukkitVersion);
-            HibiscusCommonsPlugin.getInstance().getLogger().severe("Detected Minecraft Version: " + minecraftVersion);
-            HibiscusCommonsPlugin.getInstance().getLogger().severe("Detected Package Version: " + packageVersion);
-            HibiscusCommonsPlugin.getInstance().getLogger().severe(" ");
-            HibiscusCommonsPlugin.getInstance().getLogger().severe("Supported versions:");
+            logger.severe("An error occurred while trying to detect the version of the server.");
+            logger.severe(" ");
+            logger.severe("Detected Bukkit Version: " + bukkitVersion);
+            logger.severe("Detected Minecraft Version: " + minecraftVersion);
+            logger.severe("Detected Package Version: " + packageVersion);
+            logger.severe(" ");
+            logger.severe("Supported versions:");
             sendSupportedVersions();
-            HibiscusCommonsPlugin.getInstance().getLogger().severe(" ");
-            HibiscusCommonsPlugin.getInstance().getLogger().severe("Please update HibiscusCommons that supports this version.");
+            logger.severe(" ");
+            logger.severe("Please update HibiscusCommons that supports this version.");
             throw new RuntimeException("Failed to detect the server version.");
         }
 
@@ -71,19 +73,19 @@ public class NMSHandlers {
             version = selectedVersion.getKey();
 
             if (!packageVersion.supported()) {
-                HibiscusCommonsPlugin.getInstance().getLogger().severe("Detected Deprecated Version!");
-                HibiscusCommonsPlugin.getInstance().getLogger().severe(" ");
-                HibiscusCommonsPlugin.getInstance().getLogger().severe("Detected Bukkit Version: " + bukkitVersion);
-                HibiscusCommonsPlugin.getInstance().getLogger().severe("Detected Minecraft Version: " + minecraftVersion);
-                HibiscusCommonsPlugin.getInstance().getLogger().severe("Package Version: " + packageVersion.internalReference());
-                HibiscusCommonsPlugin.getInstance().getLogger().severe("Is Supported: " + packageVersion.supported());
-                HibiscusCommonsPlugin.getInstance().getLogger().severe(" ");
-                HibiscusCommonsPlugin.getInstance().getLogger().severe("This version has no explicit support for it. There maybe errors that are unfixable.");
-                HibiscusCommonsPlugin.getInstance().getLogger().severe("Consider moving to a version with explicit support. ");
-                HibiscusCommonsPlugin.getInstance().getLogger().severe(" ");
-                HibiscusCommonsPlugin.getInstance().getLogger().severe("Supported versions:");
+                logger.severe("Detected Deprecated Version!");
+                logger.severe(" ");
+                logger.severe("Detected Bukkit Version: " + bukkitVersion);
+                logger.severe("Detected Minecraft Version: " + minecraftVersion);
+                logger.severe("Package Version: " + packageVersion.internalReference());
+                logger.severe("Is Supported: " + packageVersion.supported());
+                logger.severe(" ");
+                logger.severe("This version has no explicit support for it. There maybe errors that are unfixable.");
+                logger.severe("Consider moving to a version with explicit support. ");
+                logger.severe(" ");
+                logger.severe("Supported versions:");
                 sendSupportedVersions();
-                HibiscusCommonsPlugin.getInstance().getLogger().severe(" ");
+                logger.severe(" ");
             }
 
             try {
@@ -104,6 +106,15 @@ public class NMSHandlers {
             if (!entry.getValue().supported()) continue;
             HibiscusCommonsPlugin.getInstance().getLogger().severe("  - " + entry.getKey().toVersionString());
         }
+    }
+
+    private static String getMinecraftVersion(String bukkitVersion) {
+        String minecraftVersion = bukkitVersion.substring(0, bukkitVersion.indexOf('-')); // Legacy-wise this is enough
+        if (minecraftVersion.contains("build")) {
+            // Paper new 26.1+ versioning system; Ex. 26.1.2.build.51-beta
+            minecraftVersion = minecraftVersion.substring(0, minecraftVersion.indexOf(".build"));
+        }
+        return minecraftVersion;
     }
 
     private record MinecraftVersionInformation(String internalReference, boolean supported) {}
