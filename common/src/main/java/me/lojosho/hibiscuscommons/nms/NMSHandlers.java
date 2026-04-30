@@ -12,10 +12,6 @@ import java.util.logging.Logger;
 public class NMSHandlers {
 
     private static final LinkedHashMap<MinecraftVersion, MinecraftVersionInformation> VERSION_MAP = new LinkedHashMap <>() {{
-        put(MinecraftVersion.v1_21, new MinecraftVersionInformation("v1_21_R1", false)); // 1.20 is not supported; was imminently bumped to 1.21.1
-        put(MinecraftVersion.v1_21_1, new MinecraftVersionInformation("v1_21_R1", true));
-        put(MinecraftVersion.v1_21_2, new MinecraftVersionInformation("v1_21_R2", false)); // 1.20.2 is not supported; was imminently bumped to 1.21.3
-        put(MinecraftVersion.v1_21_3, new MinecraftVersionInformation("v1_21_R2", true));
         put(MinecraftVersion.v1_21_4, new MinecraftVersionInformation("v1_21_R3", true));
         put(MinecraftVersion.v1_21_5, new MinecraftVersionInformation("v1_21_R4", true));
         put(MinecraftVersion.v1_21_6, new MinecraftVersionInformation("v1_21_R5", false));

@@ -123,8 +123,6 @@ allprojects {
 
 dependencies {
     implementation(project(path = ":common"))
-    implementation(project(path = ":v1_21_R1"))
-    implementation(project(path = ":v1_21_R2"))
     implementation(project(path = ":v1_21_R3"))
     implementation(project(path = ":v1_21_R4"))
     implementation(project(path = ":v1_21_R5"))
@@ -163,8 +161,6 @@ tasks {
     }
 
     shadowJar {
-        dependsOn(":v1_21_R1:build")
-        dependsOn(":v1_21_R2:build")
         dependsOn(":v1_21_R3:build")
         dependsOn(":v1_21_R4:build")
         dependsOn(":v1_21_R5:build")
