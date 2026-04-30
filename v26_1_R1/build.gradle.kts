@@ -11,8 +11,10 @@ dependencies {
 tasks {
     compileJava {
         options.encoding = Charsets.UTF_8.name()
+        options.release = 21
     }
     java {
+        disableAutoTargetJvm()
         toolchain.languageVersion.set(JavaLanguageVersion.of(25))
     }
 

@@ -123,13 +123,13 @@ allprojects {
 
 dependencies {
     implementation(project(path = ":common"))
-    implementation(project(path = ":v1_21_R1", configuration = "reobf"))
-    implementation(project(path = ":v1_21_R2", configuration = "reobf"))
-    implementation(project(path = ":v1_21_R3", configuration = "reobf"))
-    implementation(project(path = ":v1_21_R4", configuration = "reobf"))
-    implementation(project(path = ":v1_21_R5", configuration = "reobf"))
-    implementation(project(path = ":v1_21_R6", configuration = "reobf"))
-    implementation(project(path = ":v1_21_R7", configuration = "reobf"))
+    implementation(project(path = ":v1_21_R1"))
+    implementation(project(path = ":v1_21_R2"))
+    implementation(project(path = ":v1_21_R3"))
+    implementation(project(path = ":v1_21_R4"))
+    implementation(project(path = ":v1_21_R5"))
+    implementation(project(path = ":v1_21_R6"))
+    implementation(project(path = ":v1_21_R7"))
     implementation(project(path = ":v26_1_R1"))
 }
 
@@ -163,13 +163,13 @@ tasks {
     }
 
     shadowJar {
-        dependsOn(":v1_21_R1:reobfJar")
-        dependsOn(":v1_21_R2:reobfJar")
-        dependsOn(":v1_21_R3:reobfJar")
-        dependsOn(":v1_21_R4:reobfJar")
-        dependsOn(":v1_21_R5:reobfJar")
-        dependsOn(":v1_21_R6:reobfJar")
-        dependsOn(":v1_21_R7:reobfJar")
+        dependsOn(":v1_21_R1:build")
+        dependsOn(":v1_21_R2:build")
+        dependsOn(":v1_21_R3:build")
+        dependsOn(":v1_21_R4:build")
+        dependsOn(":v1_21_R5:build")
+        dependsOn(":v1_21_R6:build")
+        dependsOn(":v1_21_R7:build")
         dependsOn(":v26_1_R1:build")
         mergeServiceFiles()
 
@@ -200,7 +200,7 @@ bukkit {
     load = BukkitPluginDescription.PluginLoadOrder.POSTWORLD
     main = "me.lojosho.hibiscuscommons.HibiscusCommonsPlugin"
     foliaSupported = true
-    apiVersion = "1.20"
+    apiVersion = "1.21"
     authors = listOf("LoJoSho")
     softDepend = listOf(
         "ModelEngine",
@@ -222,9 +222,6 @@ bukkit {
         "GSit"
     )
     version = "${project.version}"
-    loadBefore = listOf(
-        "Cosmin" // Fixes an issue with Cosmin loading before and taking /cosmetic, when messing with what we do.
-    )
     libraries = listOf(
         "org.apache.commons:commons-lang3:3.17.0"
     )
