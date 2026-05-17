@@ -5,7 +5,7 @@ import me.lojosho.hibiscuscommons.hooks.Hook;
 import me.lojosho.hibiscuscommons.hooks.HookFlag;
 import net.momirealms.craftengine.bukkit.api.CraftEngineItems;
 import net.momirealms.craftengine.bukkit.api.event.CraftEngineReloadEvent;
-import net.momirealms.craftengine.core.item.CustomItem;
+import net.momirealms.craftengine.bukkit.item.BukkitItemDefinition;
 import net.momirealms.craftengine.core.util.Key;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -25,9 +25,9 @@ public class HookCraftEngine extends Hook {
     @Override
     public ItemStack getItem(@NotNull String itemId) {
         if (!isActive()) return new ItemStack(Material.AIR);
-        CustomItem<ItemStack> item = CraftEngineItems.byId(Key.of(itemId));
+        BukkitItemDefinition item = CraftEngineItems.byId(itemId);
         if (item == null) return null;
-        return item.buildItemStack();
+        return item.buildBukkitItem();
     }
 
     @Override
