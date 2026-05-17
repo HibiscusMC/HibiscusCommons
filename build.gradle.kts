@@ -98,8 +98,8 @@ allprojects {
         compileOnly("org.joml:joml:1.10.8")
         compileOnly("com.google.guava:guava:33.4.0-jre") // Sometimes just not included in compile time???
         compileOnly("com.github.Gecolay.GSit:core:3.1.1")
-        compileOnly("net.momirealms:craft-engine-core:0.0.49")
-        compileOnly("net.momirealms:craft-engine-bukkit:0.0.49")
+        compileOnly("net.momirealms:craft-engine-core:26.5")
+        compileOnly("net.momirealms:craft-engine-bukkit:26.5")
 
         // Lombok <3
         annotationProcessor("org.projectlombok:lombok:1.18.44")
