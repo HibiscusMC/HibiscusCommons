@@ -32,7 +32,6 @@ public class PlayerScoreboardTeamAddPlayersWrapper extends PlayerScoreboardTeamW
         //Adding players to the team (You have to use the NPC's name, and add it to a list)
         return ClientboundSetPlayerTeamPacket.createMultiplePlayerPacket(team, new ArrayList<String>() {{
             add(name);
-            add(player.getName());
         }}, ClientboundSetPlayerTeamPacket.Action.ADD);
     }
 }
